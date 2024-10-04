@@ -335,6 +335,22 @@ class EmployeePosition(models.Model):
         return f"{self.employee} - {self.position}"
 
 
+class Competency(models.Model):
+    """ Модель -Компетенция-. """
+
+    competency_name = models.CharField(
+        max_length=255,
+        verbose_name='Название компетенции',
+    )
+    employee_count = models.IntegerField(
+        default=0,
+        verbose_name='Количество сотрудников с данной компетенцией'
+    )
+
+    def __str__(self):
+        return self.competency_name
+
+
 class PositionCompetency(models.Model):
     """ Модель -Должность к компетенции-. """
 
@@ -365,38 +381,6 @@ class TeamPosition(models.Model):
 
     def __str__(self):
         return f"{self.team} - {self.position}"
-
-
-class EmployeePosition(models.Model):
-    """ Модель -Должность сотрудника-. """
-
-    employee = models.ForeignKey(
-        Employee,
-        on_delete=models.CASCADE
-    )
-    position = models.ForeignKey(
-        Position,
-        on_delete=models.CASCADE
-    )
-
-    def __str__(self):
-        return f"{self.employee} - {self.position}"
-    
-
-class Competency(models.Model):
-    """ Модель -Компетенция-. """
-
-    competency_name = models.CharField(
-        max_length=255,
-        verbose_name='Название компетенции',
-    )
-    employee_count = models.IntegerField(
-        default=0,
-        verbose_name='Количество сотрудников с данной компетенцией'
-    )
-
-    def __str__(self):
-        return self.competency_name
 
 
 class EmployeeCompetency(models.Model):

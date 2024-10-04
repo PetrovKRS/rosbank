@@ -7,7 +7,7 @@ from .models import (
     EmployeeTrainingApplication, BusFactor, EmployeeBusFactor,
     Grade, EmployeeGrade, KeySkill, EmployeeKeySkill,
     Team, EmployeeTeam, Position, EmployeePosition, PositionCompetency,
-    TeamPosition, EmployeePosition, Competency, EmployeeCompetency,
+    TeamPosition, Competency, EmployeeCompetency,
     Skill, EmployeeSkill, SkillForCompetency, ExpectedSkill,
     EmployeeExpectedSkill, CompetencyForExpectedSkill,
 )
@@ -15,8 +15,9 @@ from .models import (
 
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
+    pass
     list_display = (
-        'pk', 'name', 'last_name', 'email', 'status',
+        'pk', 'first_name', 'last_name', 'email', 'status',
         'registration_date', 'last_login_date',
     )
     # search_fields = (
@@ -30,7 +31,9 @@ class EmployeeAdmin(admin.ModelAdmin):
 
 @admin.register(DevelopmentPlan)
 class DevelopmentPlanAdmin(admin.ModelAdmin):
-    pass
+    list_display = (
+        'pk', 'plan_name', 'employee_count',
+    )
 
 
 @admin.register(EmployeeDevelopmentPlan)
@@ -125,11 +128,6 @@ class PositionCompetencyAdmin(admin.ModelAdmin):
 
 @admin.register(TeamPosition)
 class TeamPositionAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(EmployeePosition)
-class EmployeePositionAdmin(admin.ModelAdmin):
     pass
 
 
