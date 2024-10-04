@@ -7,10 +7,6 @@ from django.db import models
 class Employee(AbstractUser):
     """ Модель сотрудника. """
 
-    employee_id = models.CharField(
-        max_length=100,
-        unique=True,
-    )
     first_name = models.CharField(
         max_length=100,
         verbose_name='Имя',
@@ -38,6 +34,13 @@ class Employee(AbstractUser):
         verbose_name='Дата последнего входа сотрудника',
     )
 
+    class Meta:
+        verbose_name = 'Сотрудники'
+        verbose_name_plural = 'Сотрудники'
+        ordering = (
+            'first_name',
+        )
+
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.employee_id})"
 
@@ -54,6 +57,13 @@ class DevelopmentPlan(models.Model):
         default=0,
         verbose_name='Кол-во сотрудников с планом развития',
     )
+
+    class Meta:
+        verbose_name = 'План развития'
+        verbose_name_plural = 'Планы развития'
+        ordering = (
+            'plan_name',
+        )
 
     def __str__(self):
         return self.plan_name
@@ -76,6 +86,13 @@ class EmployeeDevelopmentPlan(models.Model):
         verbose_name='Процент развития',
     )
 
+    class Meta:
+        verbose_name = 'План развития сотрудника'
+        verbose_name_plural = 'Планы развития сотрудников'
+        ordering = (
+            'development_plan',
+        )
+
     def __str__(self):
         return f"{self.employee} - {self.development_plan}"
     
@@ -87,13 +104,20 @@ class Engagement(models.Model):
         max_length=255,
         verbose_name='Название вовлеченности',
     )
+    def __str__(self):
+        return self.engagement_name
+
     employee_count = models.IntegerField(
         default=0,
         verbose_name='Количество вовлеченных сотрудников',
     )
 
-    def __str__(self):
-        return self.engagement_name
+    class Meta:
+        verbose_name = 'Вовлеченность'
+        verbose_name_plural = 'Вовлеченности'
+        ordering = (
+            'engagement_name',
+        )
 
 
 class EmployeeEngagement(models.Model):
@@ -111,6 +135,13 @@ class EmployeeEngagement(models.Model):
         verbose_name='Уровень вовлеченности сотрудника',
     )
 
+    class Meta:
+        verbose_name = 'Вовлеченность сотрудника'
+        verbose_name_plural = 'Вовлеченность сотрудников'
+        ordering = (
+            'engagement_level',
+        )
+
     def __str__(self):
         return f"{self.employee} - {self.engagement}"
     
@@ -126,6 +157,13 @@ class KeyPeople(models.Model):
         default=0,
         verbose_name='Количество сотрудников Key People'
     )
+
+    class Meta:
+        verbose_name = 'Вовлеченность сотрудника'
+        verbose_name_plural = 'Вовлеченность сотрудников'
+        ordering = (
+            'engagement_level',
+        )
 
     def __str__(self):
         return self.key_people_name
