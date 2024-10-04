@@ -47,7 +47,6 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_framework',
     'djoser',
-    # 'users.apps.UsersConfig',
     'api.apps.ApiConfig',
     'core.apps.CoreConfig',
 ]

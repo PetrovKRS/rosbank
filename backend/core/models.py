@@ -1,3 +1,6 @@
+from dataclasses import fields
+from tabnanny import verbose
+
 from django.db import models
 
 from django.contrib.auth.models import AbstractUser
@@ -33,6 +36,9 @@ class Employee(AbstractUser):
         db_index=True,
         verbose_name='Дата последнего входа сотрудника',
     )
+    education = models.BooleanField(default=False)
+    key_people = models.BooleanField(default=False)
+    bus_factor = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = 'Сотрудники'
@@ -42,7 +48,7 @@ class Employee(AbstractUser):
         )
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name} ({self.employee_id})"
+        return f"{self.first_name} {self.last_name} ({self.pk})"
 
 
 class DevelopmentPlan(models.Model):
@@ -78,7 +84,9 @@ class EmployeeDevelopmentPlan(models.Model):
     )
     development_plan = models.ForeignKey(
         DevelopmentPlan,
+        related_name='employee_development_plans',
         on_delete=models.CASCADE,
+        verbose_name='План развития',
     )
     development_progress = models.DecimalField(
         max_digits=5,
@@ -129,7 +137,9 @@ class EmployeeEngagement(models.Model):
     )
     engagement = models.ForeignKey(
         Engagement,
+        related_name='employee_engagements',
         on_delete=models.CASCADE,
+        verbose_name='Вовлеченность',
     )
     engagement_level = models.IntegerField(
         verbose_name='Уровень вовлеченности сотрудника',
@@ -162,7 +172,7 @@ class KeyPeople(models.Model):
         verbose_name = 'Вовлеченность сотрудника'
         verbose_name_plural = 'Вовлеченность сотрудников'
         ordering = (
-            'engagement_level',
+            'key_people_name',
         )
 
     def __str__(self):
@@ -178,8 +188,17 @@ class EmployeeKeyPeople(models.Model):
     )
     key_people = models.ForeignKey(
         KeyPeople,
+        related_name='employee_keys_peoples',
         on_delete=models.CASCADE,
+        verbose_name='Key people',
     )
+
+    class Meta:
+        verbose_name = 'Key People сотрудника'
+        verbose_name_plural = 'Key People сотрудников'
+        ordering = (
+            'key_people',
+        )
 
     def __str__(self):
         return f"{self.employee} - {self.key_people}"
@@ -197,6 +216,13 @@ class TrainingApplication(models.Model):
         verbose_name='Количество сотрудников на обучении',
     )
 
+    class Meta:
+        verbose_name = 'Заявка на обучение'
+        verbose_name_plural = 'Заявки на обучение'
+        ordering = (
+            'training_name',
+        )
+
     def __str__(self):
         return self.training_name
 
@@ -210,8 +236,17 @@ class EmployeeTrainingApplication(models.Model):
     )
     training_application = models.ForeignKey(
         TrainingApplication,
+        related_name='employee_training_applications',
         on_delete=models.CASCADE,
+        verbose_name='Заявка на обучение',
     )
+
+    class Meta:
+        verbose_name = 'Заявка на обучение сотрудника'
+        verbose_name_plural = 'Заявки на обучение сотрудников'
+        ordering = (
+            'training_application',
+        )
 
     def __str__(self):
         return f"{self.employee} - {self.training_application}"    
@@ -229,6 +264,13 @@ class BusFactor(models.Model):
         verbose_name='Количество сотрудников с этим Bus фактором',
     )
 
+    class Meta:
+        verbose_name = 'Bus Фактор'
+        verbose_name_plural = 'Bus Факторы'
+        ordering = (
+            'bus_factor_name',
+        )
+
     def __str__(self):
         return self.bus_factor_name
 
@@ -242,26 +284,43 @@ class EmployeeBusFactor(models.Model):
     )
     bus_factor = models.ForeignKey(
         BusFactor,
-        on_delete=models.CASCADE
+        related_name='employee_bus_factors',
+        on_delete=models.CASCADE,
+        verbose_name='Bus фактор',
     )
+
+    class Meta:
+        verbose_name = 'Bus Фактор сотрудника'
+        verbose_name_plural = 'Bus Факторы сотрудников'
+        ordering = (
+            'bus_factor',
+        )
 
     def __str__(self):
         return f"{self.employee} - {self.bus_factor}"
     
 
 class Grade(models.Model):
+    """ Модель -Класс-. """
 
     grade_name = models.CharField(
         max_length=255,
-        verbose_name='Название грейда',
+        verbose_name='Название класса',
     )
+
+    class Meta:
+        verbose_name = 'Класс'
+        verbose_name_plural = 'Классы'
+        ordering = (
+            'grade_name',
+        )
 
     def __str__(self):
         return self.grade_name
 
 
 class EmployeeGrade(models.Model):
-    """ Модель -Грейд сотрудника-. """
+    """ Модель -Класс сотрудника-. """
 
     employee = models.OneToOneField(
         Employee,
@@ -269,8 +328,17 @@ class EmployeeGrade(models.Model):
     )
     grade = models.ForeignKey(
         Grade,
-        on_delete=models.CASCADE
+        related_name='employee_grades',
+        on_delete=models.CASCADE,
+        verbose_name='Класс',
     )
+
+    class Meta:
+        verbose_name = 'Класс сотрудника'
+        verbose_name_plural = 'Классы сотрудников'
+        ordering = (
+            'grade',
+        )
 
     def __str__(self):
         return f"{self.employee} - {self.grade}"
@@ -288,6 +356,13 @@ class KeySkill(models.Model):
         verbose_name='Количество сотрудников с данным ключевым навыком',
     )
 
+    class Meta:
+        verbose_name = 'Ключевой навык'
+        verbose_name_plural = 'Ключевые навыки'
+        ordering = (
+            'skill_name',
+        )
+
     def __str__(self):
         return self.skill_name
 
@@ -301,12 +376,21 @@ class EmployeeKeySkill(models.Model):
     )
     key_skill = models.ForeignKey(
         KeySkill,
+        related_name='employee_key_skills',
         on_delete=models.CASCADE,
+        verbose_name='Ключевой навык',
     )
     skill_level = models.CharField(
         max_length=255,
         verbose_name='Уровень ключевого навыка сотрудника',
     )
+
+    class Meta:
+        verbose_name = 'Ключевой навык сотрудника'
+        verbose_name_plural = 'Ключевые навыки сотрудников'
+        ordering = (
+            'key_skill',
+        )
 
     def __str__(self):
         return f"{self.employee} - {self.key_skill} ({self.skill_level})"
@@ -319,6 +403,10 @@ class Team(models.Model):
         max_length=255,
         verbose_name='Название команды',
     )
+
+    class Meta:
+        verbose_name = 'Команда'
+        verbose_name_plural = 'Команды'
 
     def __str__(self):
         return self.team_name
@@ -333,8 +421,17 @@ class EmployeeTeam(models.Model):
     )
     team = models.ForeignKey(
         Team,
+        related_name='employee_teams',
         on_delete=models.CASCADE,
+        verbose_name='Команда',
     )
+
+    class Meta:
+        verbose_name = 'Команда сотрудника'
+        verbose_name_plural = 'Команды сотрудников'
+        ordering = (
+            'team',
+        )
 
     def __str__(self):
         return f"{self.employee} - {self.team}"
@@ -353,6 +450,13 @@ class Position(models.Model):
         verbose_name='Количество грейдов, связанных с должностью'
     )
 
+    class Meta:
+        verbose_name = 'Должность'
+        verbose_name_plural = 'Должности'
+        ordering = (
+            'position_name',
+        )
+
     def __str__(self):
         return self.position_name
 
@@ -366,8 +470,17 @@ class EmployeePosition(models.Model):
     )
     position = models.ForeignKey(
         Position,
-        on_delete=models.CASCADE
+        related_name='employee_positions',
+        on_delete=models.CASCADE,
+        verbose_name='Должность',
     )
+
+    class Meta:
+        verbose_name = 'Должность сотрудника'
+        verbose_name_plural = 'Должности сотрудников'
+        ordering = (
+            'position',
+        )
 
     def __str__(self):
         return f"{self.employee} - {self.position}"
@@ -385,6 +498,13 @@ class Competency(models.Model):
         verbose_name='Количество сотрудников с данной компетенцией'
     )
 
+    class Meta:
+        verbose_name = 'Компетенция'
+        verbose_name_plural = 'Компетенции'
+        ordering = (
+            'competency_name',
+        )
+
     def __str__(self):
         return self.competency_name
 
@@ -400,6 +520,19 @@ class PositionCompetency(models.Model):
         Competency,
         on_delete=models.CASCADE
     )
+
+    class Meta:
+        verbose_name = 'Должность к компетенции'
+        verbose_name_plural = 'Должности к компетенциям'
+        constraints = (
+            models.UniqueConstraint(
+                fields=(
+                    'position',
+                    'competency'
+                ),
+                name='unique_position_competency'
+            ),
+        )
 
     def __str__(self):
         return f"{self.position} - {self.competency}"
@@ -417,6 +550,13 @@ class TeamPosition(models.Model):
         on_delete=models.CASCADE,
     )
 
+    class Meta:
+        verbose_name = 'Должность для команды'
+        verbose_name_plural = 'Должности для команд'
+        ordering = (
+            'team',
+        )
+
     def __str__(self):
         return f"{self.team} - {self.position}"
 
@@ -430,12 +570,21 @@ class EmployeeCompetency(models.Model):
     )
     competency = models.ForeignKey(
         Competency,
+        related_name='employee_competencies',
         on_delete=models.CASCADE,
+        verbose_name='Компетенция',
     )
     competency_level = models.CharField(
         max_length=255,
         verbose_name='Уровень компетенции сотрудника',
     )
+
+    class Meta:
+        verbose_name = 'Компетенция сотрудника'
+        verbose_name_plural = 'Компетенции сотрудников'
+        ordering = (
+            'competency',
+        )
 
     def __str__(self):
         return f"{self.employee} - {self.competency} ({self.competency_level})"
@@ -451,6 +600,13 @@ class Skill(models.Model):
     employee_count = models.IntegerField(
         default=0)  # Количество сотрудников с данным навыком
 
+    class Meta:
+        verbose_name = 'Навык'
+        verbose_name_plural = 'Навыки'
+        ordering = (
+            'skill_name',
+        )
+
     def __str__(self):
         return self.skill_name
 
@@ -464,12 +620,21 @@ class EmployeeSkill(models.Model):
     )
     skill = models.ForeignKey(
         Skill,
+        related_name='employee_skills',
         on_delete=models.CASCADE,
+        verbose_name='Навык',
     )
     skill_level = models.CharField(
         max_length=255,
         verbose_name='Уровень навыка сотрудника',
     )
+
+    class Meta:
+        verbose_name = 'Навык сотрудника'
+        verbose_name_plural = 'Навыки сотрудников'
+        ordering = (
+            'skill',
+        )
 
     def __str__(self):
         return f"{self.employee} - {self.skill} ({self.skill_level})"
@@ -487,6 +652,19 @@ class SkillForCompetency(models.Model):
         on_delete=models.CASCADE,
     )
 
+    class Meta:
+        verbose_name = 'Навык для компетенции'
+        verbose_name_plural = 'Навыки для компетенций'
+        constraints = (
+            models.UniqueConstraint(
+                fields=(
+                    'skill',
+                    'competency'
+                ),
+                name='unique_skill_competency'
+            ),
+        )
+
     def __str__(self):
         return f"{self.skill} - {self.competency}"
     
@@ -503,6 +681,13 @@ class ExpectedSkill(models.Model):
         verbose_name='Количество сотрудников с данным ожидаемым навыком',
     )
 
+    class Meta:
+        verbose_name = 'Ожидаемый навык'
+        verbose_name_plural = 'Ожидаемые навыки'
+        ordering = (
+            'expected_skill_name',
+        )
+
     def __str__(self):
         return self.expected_skill_name
 
@@ -513,11 +698,21 @@ class EmployeeExpectedSkill(models.Model):
     employee = models.ForeignKey(
         Employee,
         on_delete=models.CASCADE,
+        verbose_name='Сотрудник',
     )
     expected_skill = models.ForeignKey(
         ExpectedSkill,
+        related_name='employee_expected_skills',
         on_delete=models.CASCADE,
+        verbose_name='Ожидаемый навык',
     )
+
+    class Meta:
+        verbose_name = 'Ожидаемый навык сотрудника'
+        verbose_name_plural = 'Ожидаемые навыки сотрудниов'
+        ordering = (
+            'expected_skill',
+        )
 
     def __str__(self):
         return f"{self.employee} - {self.expected_skill} ({self.skill_level})"
@@ -530,7 +725,23 @@ class CompetencyForExpectedSkill(models.Model):
         ExpectedSkill,
         on_delete=models.CASCADE,
     )
-    competency = models.ForeignKey(Competency, on_delete=models.CASCADE)
+    competency = models.ForeignKey(
+        Competency,
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        verbose_name = 'Компетенция для ожидаемого навыка'
+        verbose_name_plural = 'Компетенции для ожидаемых навыков'
+        constraints = (
+            models.UniqueConstraint(
+                fields=(
+                    'expected_skill',
+                    'competency'
+                ),
+                name='unique_expected_skill_competency'
+            ),
+        )
 
     def __str__(self):
         return f"{self.expected_skill} - {self.competency}"

@@ -1,3 +1,11 @@
-from django.shortcuts import render
+from rest_framework import status, viewsets, mixins
+from rest_framework.permissions import AllowAny
 
-# Create your views here.
+from core.models import Employee
+from .serializers import EmployeeSerializer
+
+class EmployeeViewSet(
+    mixins.ListModelMixin, viewsets.GenericViewSet):
+
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
