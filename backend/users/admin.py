@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Subscription, User
+from .models import User
 
 
 @admin.register(User)
@@ -14,4 +14,4 @@ class UserAdmin(admin.ModelAdmin):
     list_filter = (
         'username', 'email'
     )
-    empty_value_display = EMPTY_VALUE
+    empty_value_display = '- пусто -'
