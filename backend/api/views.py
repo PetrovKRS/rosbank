@@ -32,3 +32,4 @@ class WorkersViewSet(viewsets.ModelViewSet):
     serializer_class = EmployeeSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = EmployeeFilter
+    
