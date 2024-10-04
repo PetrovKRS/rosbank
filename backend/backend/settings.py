@@ -47,8 +47,9 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_framework',
     'djoser',
-    'users.apps.UsersConfig',
+    # 'users.apps.UsersConfig',
     'api.apps.ApiConfig',
+    'core.apps.CoreConfig',
 ]
 
 MIDDLEWARE = [
@@ -145,30 +146,30 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.TokenAuthentication',
-    ),
+    # 'DEFAULT_AUTHENTICATION_CLASSES': (
+    #     'rest_framework.authentication.TokenAuthentication',
+    # ),
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
     ),
     # 'DEFAULT_PAGINATION_CLASS': 'api.pagination.LimitPagination',
     # 'PAGE_SIZE': 6,
 }
 
-DJOSER = {
-    'HIDE_USERS': False,
-    'LOGIN_FIELD': 'email',
-    'SERIALIZERS': {
-        'user': 'api.serializers.CustomUserSerializer',
-        'current_user': 'api.serializers.CustomUserSerializer',
-        'user_create': 'api.serializers.CustomUserCreateSerializer',
-    },
-    'PERMISSIONS': {
-        'user': ['djoser.permissions.CurrentUserOrAdminOrReadOnly'],
-        'user_list': ['rest_framework.permissions.AllowAny'],
-    },
-}
+# DJOSER = {
+#     'HIDE_USERS': False,
+#     'LOGIN_FIELD': 'email',
+#     'SERIALIZERS': {
+#         'user': 'api.serializers.CustomUserSerializer',
+#         'current_user': 'api.serializers.CustomUserSerializer',
+#         'user_create': 'api.serializers.CustomUserCreateSerializer',
+#     },
+#     'PERMISSIONS': {
+#         'user': ['djoser.permissions.CurrentUserOrAdminOrReadOnly'],
+#         'user_list': ['rest_framework.permissions.AllowAny'],
+#     },
+# }
 
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = 'core.Employee'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
