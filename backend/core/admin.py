@@ -20,28 +20,16 @@ class EmployeeAdmin(admin.ModelAdmin):
         'pk', 'first_name', 'last_name', 'email', 'status',
         'registration_date', 'last_login_date',
     )
-    # search_fields = (
-    #     'username', 'email', 'first_name', 'last_name'
-    # )
-    # list_filter = (
-    #     'username', 'email'
-    # )
-    # empty_value_display = '- пусто -'
 
 
 @admin.register(DevelopmentPlan)
 class DevelopmentPlanAdmin(admin.ModelAdmin):
     list_display = (
-        'pk', 'plan_name', 'employee_count', 'emp_count'
+        'pk', 'plan_name', 'employee_count',
     )
     readonly_fields = (
         'employee_count',
     )
-
-    def emp_count(self, obj):
-        """ Количество сотрудников с планом развития. """
-
-        return
 
 
 @admin.register(EmployeeDevelopmentPlan)

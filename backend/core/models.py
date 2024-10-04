@@ -1,54 +1,7 @@
-from dataclasses import fields
-from tabnanny import verbose
-
-from django.db import models
-
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-
-class Employee(AbstractUser):
-    """ Модель сотрудника. """
-
-    first_name = models.CharField(
-        max_length=100,
-        verbose_name='Имя',
-    )
-    last_name = models.CharField(
-        max_length=100,
-        verbose_name='Фамилия',
-    )
-    email = models.EmailField(
-        max_length=100,
-        unique=True,
-        verbose_name='E-mail'
-    )
-    status = models.CharField(
-        max_length=50
-    )  # E.g., completed, in-progress
-    registration_date = models.DateField(
-        auto_now_add=True,
-        db_index=True,
-        verbose_name='Дата регистрации сотрудника'
-    )
-    last_login_date = models.DateField(
-        auto_now_add=True,
-        db_index=True,
-        verbose_name='Дата последнего входа сотрудника',
-    )
-    education = models.BooleanField(default=False)
-    key_people = models.BooleanField(default=False)
-    bus_factor = models.BooleanField(default=False)
-
-    class Meta:
-        verbose_name = 'Сотрудники'
-        verbose_name_plural = 'Сотрудники'
-        ordering = (
-            'first_name',
-        )
-
-    def __str__(self):
-        return f"{self.first_name} {self.last_name} ({self.pk})"
+from users.models import Employee
 
 
 class DevelopmentPlan(models.Model):
