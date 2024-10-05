@@ -13,13 +13,13 @@ from .models import (
 )
 
 
-@admin.register(Employee)
-class EmployeeAdmin(admin.ModelAdmin):
-    pass
-    list_display = (
-        'pk', 'first_name', 'last_name', 'email', 'status',
-        'registration_date', 'last_login_date',
-    )
+# @admin.register(Employee)
+# class EmployeeAdmin(admin.ModelAdmin):
+#     pass
+#     list_display = (
+#         'pk', 'first_name', 'last_name', 'email', 'status',
+#         'registration_date', 'last_login_date',
+#     )
 
 
 @admin.register(DevelopmentPlan)

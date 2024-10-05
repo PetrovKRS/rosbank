@@ -1,16 +1,23 @@
-from django.urls import include, path
+from django.urls import include, path, re_path
 from rest_framework import routers
 
-from .views import (
-    WorkersViewSet
+from api.views import (
+WorkersViewSet
 )
 
-app_name = 'api'
+router_v1 = routers.DefaultRouter()
 
-router = routers.DefaultRouter()
 
-router.register(r'workers/list', WorkersViewSet, basename='workers')
+router_v1.register(r'workers/list', WorkersViewSet, basename='workers')
+# router_v1.register(r'products', ProductListViewSet, basename='product')
+# router_v1.register(r'outfit', ProductDetailViewSet, basename='outfit')
+# router_v1.register(r'shopping', ShoppingViewSet, basename='shopping')
+
+
+
 
 urlpatterns = [
-    path('/', include('router.urls'))
+    path('v1/', include(router_v1.urls)),
+    # path('auth/', include('djoser.urls')),
+    # re_path('auth/', include('djoser.urls.authtoken')),
 ]

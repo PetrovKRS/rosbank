@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_framework',
     'djoser',
+    'users.apps.UsersConfig',
     'api.apps.ApiConfig',
     'core.apps.CoreConfig',
 ]
@@ -169,6 +170,6 @@ REST_FRAMEWORK = {
 #     },
 # }
 
-AUTH_USER_MODEL = 'core.Employee'
+AUTH_USER_MODEL = 'users.Employee'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
