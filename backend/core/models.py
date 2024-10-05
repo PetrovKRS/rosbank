@@ -1,5 +1,9 @@
+from tabnanny import verbose
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils.formats import date_format
+from django_filters.utils import verbose_field_name
 
 from users.models import Employee
 
@@ -16,6 +20,7 @@ class DevelopmentPlan(models.Model):
         default=0,
         verbose_name='Кол-во сотрудников с планом развития',
     )
+
 
     class Meta:
         verbose_name = 'План развития'
@@ -45,6 +50,11 @@ class EmployeeDevelopmentPlan(models.Model):
         max_digits=5,
         decimal_places=2,
         verbose_name='Процент развития',
+    )
+    add_date = models.DateField(
+        auto_now_add=True,
+        db_index=True,
+        verbose_name='Дата добавления сотрудника в план развития',
     )
 
     class Meta:
@@ -97,6 +107,11 @@ class EmployeeEngagement(models.Model):
     engagement_level = models.IntegerField(
         verbose_name='Уровень вовлеченности сотрудника',
     )
+    add_date = models.DateField(
+        auto_now_add=True,
+        db_index=True,
+        verbose_name='Дата вовлечения сотрудника',
+    )
 
     class Meta:
         verbose_name = 'Вовлеченность сотрудника'
@@ -144,6 +159,11 @@ class EmployeeKeyPeople(models.Model):
         KeyPeople,
         on_delete=models.CASCADE,
         verbose_name='Key people',
+    )
+    add_date = models.DateField(
+        auto_now_add=True,
+        db_index=True,
+        verbose_name='Дата добавления ключевого сотрудника',
     )
 
     class Meta:
@@ -193,6 +213,11 @@ class EmployeeTrainingApplication(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Заявка на обучение',
     )
+    add_date = models.DateField(
+        auto_now_add=True,
+        db_index=True,
+        verbose_name='Дата добавления заявки на обучение',
+    )
 
     class Meta:
         verbose_name = 'Заявка на обучение сотрудника'
@@ -240,6 +265,11 @@ class EmployeeBusFactor(models.Model):
         BusFactor,
         on_delete=models.CASCADE,
         verbose_name='Bus фактор',
+    )
+    add_date = models.DateField(
+        auto_now_add=True,
+        db_index=True,
+        verbose_name='Дата добавления bud-фактора сотрудника',
     )
 
     class Meta:
@@ -336,6 +366,11 @@ class EmployeeKeySkill(models.Model):
     skill_level = models.CharField(
         max_length=255,
         verbose_name='Уровень ключевого навыка сотрудника',
+    )
+    add_date = models.DateField(
+        auto_now_add=True,
+        db_index=True,
+        verbose_name='Дата добавления ключевого навыка сотрудника',
     )
 
     class Meta:

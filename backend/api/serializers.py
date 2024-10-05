@@ -15,20 +15,26 @@ from rest_framework.validators import UniqueTogetherValidator
 class WorkersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Employee
-        fields = ('id', 'employee_id', 'first_name', 'patronymic', 'position')
+        fields = (
+            'id', 'employee_id', 'first_name', 'patronymic', 'position'
+        )
 
 
-# Сериализатор для навыков сотрудника
 class SkillSerializer(serializers.ModelSerializer):
+    """ Сериализатор для навыков сотрудника. """
+
     skill = serializers.CharField(source='skill.skill_name')
 
     class Meta:
         model = EmployeeSkill
-        fields = ['skill', 'skill_level']
+        fields = (
+            'skill', 'skill_level'
+        )
 
 
-# Сериализатор для компетенций сотрудника
 class CompetencySerializer(serializers.ModelSerializer):
+    """ Сериализатор для компетенций сотрудника. """
+
     competency = serializers.CharField(source='competency.competency_name')
 
     class Meta:
@@ -38,8 +44,9 @@ class CompetencySerializer(serializers.ModelSerializer):
         )
 
 
-# Основной сериализатор для сотрудников
 class EmployeeSerializer(serializers.ModelSerializer):
+    """ Основной сериализатор для сотрудников. """
+
     worker = serializers.SerializerMethodField()
     skills = SkillSerializer(many=True)
     competencies = CompetencySerializer(source='employee_competencies', many=True)
@@ -72,15 +79,12 @@ class EmployeeSerializer(serializers.ModelSerializer):
     def get_education(self, obj):
         return EmployeeTrainingApplication.objects.filter(employee=obj).exists()
 
-    # def get_grade(self, obj):
-    #     try:
-    #         return obj.employeegrade.grade.grade_name
-    #     except EmployeeGrade.DoesNotExist:
-    #         return None
 
-    # def get_position(self, obj):
-    #     try:
-    #         return obj.employeeposition_set.first().position  # Получаем первую связанную позицию
-    #     except (AttributeError, EmployeePosition.DoesNotExist):
-    #         return None
-    
+class DevelopmentPlanSerializer(serializers.ModelSerializer):
+    """ ."""
+
+    class Meta:
+        model = DevelopmentPlan
+        fields = (
+            'month', 'year', 'key_skill',
+        )
