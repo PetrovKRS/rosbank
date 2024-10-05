@@ -33,14 +33,16 @@ class CompetencySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EmployeeCompetency
-        fields = ['competency', 'competency_level']
+        fields = (
+            'competency', 'competency_level'
+        )
 
 
 # Основной сериализатор для сотрудников
 class EmployeeSerializer(serializers.ModelSerializer):
     worker = serializers.SerializerMethodField()
     skills = SkillSerializer(many=True)
-    competencies = CompetencySerializer(source='employeecompetency_set', many=True)
+    competencies = CompetencySerializer(source='employee_competencies', many=True)
     position = serializers.CharField(source='positions.first.position.position_name', allow_null=True)
     grade = serializers.CharField(source='grades.grade.grade_name', )
 
@@ -50,8 +52,10 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Employee
-        fields = ['id', 'position', 'worker', 'grade', 'key_people', 'bus_factor', 'education', 'skills',
-                  'competencies']
+        fields = (
+            'id', 'position', 'worker', 'grade', 'key_people',
+            'bus_factor', 'education', 'skills','competencies'
+        )
 
     def get_worker(self, obj):
         return f"{obj.first_name} {obj.last_name}"
