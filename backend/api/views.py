@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django_filters import rest_framework as filters
+
 from rest_framework import (
     mixins,
     permissions,
@@ -20,7 +21,7 @@ from core.models import (
     ExpectedSkill, EmployeeExpectedSkill, CompetencyForExpectedSkill
 )
 from .serializers import (
-    EmployeeSerializer
+    EmployeeSerializer, DevelopmentPlanSerializer,
 )
 from api.filters import (
     EmployeeFilter
@@ -33,23 +34,8 @@ class WorkersViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = EmployeeFilter
 
-    def post(self, request, *args, **kwargs):
-        criterion = request.data.get('criterion')
-        execution_data = request.data.get('executionData', [])
 
-        # Находим работников, соответствующих критериям
-        workers = Employee.objects.all()
+class DevelopmentPlanViewSet(viewsets.ModelViewSet):
+    queryset = DevelopmentPlan.objects.all()
+    serializer_class = DevelopmentPlanSerializer
 
-        # Фильтруем по каждому месяцу и году
-        for data in execution_data:
-            month = data.get('month')
-            year = data.get('year')
-            workers = workers.filter(development_plans__month=month, development_plans__year=year)
-
-        # Если указан критерий, фильтруем по навыку
-        if criterion:
-            workers = workers.filter(development_plans__key_skill__name__icontains=criterion)
-
-        # Сериализация и возврат данных
-        serializer = self.get_serializer(workers, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)

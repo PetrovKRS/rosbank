@@ -1,4 +1,4 @@
-FROM python:4.2
+FROM python:3.12
 
 WORKDIR /app
 RUN pip install gunicorn==20.1.0
