@@ -4,7 +4,7 @@ from core.models import (
     EmployeeTrainingApplication, EmployeeGrade,
     EmployeeSkill, EmployeeCompetency, EmployeePosition, EmployeeDevelopmentPlan
 )
-
+from users.models import ManagerTeam
 
 class EmployeeKeyPeopleInline(admin.TabularInline):
     model = EmployeeKeyPeople
@@ -60,11 +60,24 @@ class UserAdmin(admin.ModelAdmin):
     ]
 
     list_display = (
-        'pk', 'employee_id', 'email', 'username', 'first_name', 'last_name'
+        'pk', 'employee_id', 'email', 'first_name', 'last_name'
+    )
+    search_fields = (
+        'email', 'first_name', 'last_name'
+    )
+    list_filter = (
+        'email', 'first_name', 'last_name'
+    )
+    
+class ManagerTeamAdmin(admin.ModelAdmin):
+    list_display = (
+        'pk', 'username', 'email', 'first_name', 'last_name'
     )
     search_fields = (
         'username', 'email', 'first_name', 'last_name'
     )
     list_filter = (
-        'username', 'email'
+        'username', 'email', 'first_name', 'last_name'
     )
+
+admin.site.register(ManagerTeam, ManagerTeamAdmin)

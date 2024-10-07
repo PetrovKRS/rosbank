@@ -22,18 +22,19 @@ from core.models import (
     ExpectedSkill, EmployeeExpectedSkill, CompetencyForExpectedSkill, Employee
 )
 from .serializers import (
-    EmployeeSerializer, DevelopmentPlanSerializer, IndividualDevelopmentPlanRequestSerializer, IndividualDevelopmentPlanResponseSerializer
+    EmployeeSerializer, DevelopmentPlanSerializer, IndividualDevelopmentPlanRequestSerializer, IndividualDevelopmentPlanResponseSerializer, MetricRequestSerializer
 )
-from api.filters import (
-    EmployeeFilter
-)
+# from api.filters import (
+#     EmployeeFilter
+# )
 from rest_framework.response import Response
+from django.db.models import Avg
 
-class WorkersViewSet(viewsets.ModelViewSet):
-    queryset = Employee.objects.all()
-    serializer_class = EmployeeSerializer
-    filter_backends = (filters.DjangoFilterBackend,)
-    filterset_class = EmployeeFilter
+# class WorkersViewSet(viewsets.ModelViewSet):
+#     queryset = Employee.objects.all()
+#     serializer_class = EmployeeSerializer
+#     filter_backends = (filters.DjangoFilterBackend,)
+#     filterset_class = EmployeeFilter
 
 
 class DevelopmentPlanViewSet(viewsets.ModelViewSet):
@@ -42,16 +43,26 @@ class DevelopmentPlanViewSet(viewsets.ModelViewSet):
 
 class MetricViewSet(viewsets.ViewSet):
     def create(self, request, metric_type):
-        request_serializer = IndividualDevelopmentPlanRequestSerializer(data=request.data)
-        user = self.request.user
+        request_serializer = MetricRequestSerializer(data=request.data)
+
+        # Получаем команду с id=1
+        try:
+            user = ManagerTeam.objects.get(pk=1)
+            print(user)
+        except ManagerTeam.DoesNotExist:
+            return Response({"error": "ManagerTeam with id=1 does not exist."}, status=status.HTTP_404_NOT_FOUND)
 
         if request_serializer.is_valid():
-            employee_ids = request_serializer.validated_data['employeeIds']
             start_period = request_serializer.validated_data['startPeriod']
             end_period = request_serializer.validated_data['endPeriod']
 
+            # Получаем всех сотрудников команды с id=1
+            team_employees = EmployeeTeam.objects.filter(manager=user).values_list('employee', flat=True)
+            print(team_employees)
+
             dashboard = []
-            total_completion = 0
+            total_performance = 0
+            employee_count = 0
 
             # Определяем модель в зависимости от типа метрики
             model = None
@@ -60,71 +71,79 @@ class MetricViewSet(viewsets.ViewSet):
             elif metric_type == 'engagement':
                 model = EmployeeEngagement
             elif metric_type == 'employees':
-                return self.get_employee_data(employee_ids, start_period, end_period)  # Обрабатываем данные по сотрудникам
+                return self.get_employee_data(team_employees, start_period, end_period)
             else:
                 return Response(
                     {"error": "Invalid metric type."},
-                          status=status.HTTP_400_BAD_REQUEST
+                    status=status.HTTP_400_BAD_REQUEST
                 )
 
-            for employee_id in employee_ids:
+            # Обрабатываем данные по каждому сотруднику команды
+            for employee_id in team_employees:
                 try:
-                    # Получаем данные по выбранной модели
-                    employee_metric = model.objects.get(employee__employee_id=employee_id)
-                    performance = employee_metric.engagement_level if metric_type == 'engagement' else employee_metric.development_progress
-                    dashboard.append({
-                        "period": {
-                            "month": start_period['month'],
-                            "year": start_period['year']
-                        },
-                        "performance": str(performance)
-                    })
-                    total_completion += performance
+                    # Получаем данные только за указанный период
+                    employee_metrics = model.objects.filter(
+                        employee=employee_id,
+                        add_date__range=(start_period, end_period)  # Фильтрация по полю add_date
+                    )
+                    print(employee_metrics)
+                    if employee_metrics.exists():
+                        # Считаем среднее значение за период для данного сотрудника
+                        employee_performance = employee_metrics.aggregate(
+                            avg_performance=Avg('development_progress' if metric_type == 'development_plan' else 'engagement_level')
+                        )
+                        avg_performance = employee_performance['avg_performance'] or 0
+
+                        dashboard.append({
+                            "employee": employee_id,  # Заменяем employee на employee_id
+                            "period": {
+                                "start": start_period,
+                                "end": end_period
+                            },
+                            "performance": str(avg_performance)
+                        })
+
+                        total_performance += avg_performance
+                        employee_count += 1
                 except model.DoesNotExist:
                     continue
 
-            # Получаем данные за последний месяц
-            completion_for_today = dashboard[-1]['performance'] if dashboard else "0.00"
+            # Среднее значение производительности за период для всех сотрудников
+            avg_performance_for_all = total_performance / employee_count if employee_count else 0
 
             response_data = {
                 "dashboard": dashboard,
-                "completionForToday": completion_for_today
+                "averagePerformanceForAll": str(avg_performance_for_all)
             }
 
-            response_serializer = IndividualDevelopmentPlanResponseSerializer(data=response_data)
-            response_serializer.is_valid(raise_exception=True)
-
-            return Response(response_serializer.data, status=status.HTTP_200_OK)
+            return Response(response_data, status=status.HTTP_200_OK)
 
         return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def get_employee_data(self, employee_ids, start_period, end_period):
+    def get_employee_data(self, team_employees, start_period, end_period):
         """ Логика получения данных по количеству сотрудников. """
         dashboard = []
 
-        for employee_id in employee_ids:
-            try:
-                employee = Employee.objects.get(employee_id=employee_id)
-                number_of_employees = Employee.objects.count()
-                number_of_bus_factors = BusFactor.objects.count()
-                number_of_key_people = Employee.objects.filter(is_key_person=True).count()
+        # Получаем общие данные, без необходимости перебора всех сотрудников
+        number_of_employees = Employee.objects.count()
+        number_of_bus_factors = BusFactor.objects.count()
+        number_of_key_people = Employee.objects.filter(is_key_person=True).count()
 
-                dashboard.append({
-                    "period": {
-                        "month": start_period['month'],
-                        "year": start_period['year']
-                    },
-                    "countData": [
-                        {
-                            "numberOfEmployees": str(number_of_employees),
-                            "numberOfBusFactors": str(number_of_bus_factors),
-                            "numberOfKeyPeople": str(number_of_key_people)
-                        }
-                    ]
-                })
-            except Employee.DoesNotExist:
-                continue
+        dashboard.append({
+            "period": {
+                "start": start_period,
+                "end": end_period
+            },
+            "countData": [
+                {
+                    "numberOfEmployees": str(number_of_employees),
+                    "numberOfBusFactors": str(number_of_bus_factors),
+                    "numberOfKeyPeople": str(number_of_key_people)
+                }
+            ]
+        })
 
         return Response({"count": dashboard}, status=status.HTTP_200_OK)
+
 
 

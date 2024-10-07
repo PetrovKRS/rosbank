@@ -81,7 +81,6 @@ class EmployeeAssesmentSkill(models.Model):
     )
     assesmentskill = models.ForeignKey(
         AssesmentSkill,
-        AssesmentSkill,
         on_delete=models.CASCADE,
         verbose_name='Оценка навыка сотрудника',
     )
@@ -493,9 +492,14 @@ class Team(models.Model):
 class EmployeeTeam(models.Model):
     """ Модель -Команда сотрудника-. """
 
-    employee = models.OneToOneField(
-        Employee,
+    manager  = models.ForeignKey(
+        ManagerTeam,
         on_delete=models.CASCADE,
+        related_name='teams',
+        verbose_name='Менеджер команды',
+    )
+    employee = models.ManyToManyField(
+        Employee,
         related_name='teams',
     )
     team = models.ForeignKey(

@@ -171,6 +171,6 @@ REST_FRAMEWORK = {
 #     },
 # }
 
-AUTH_USER_MODEL = 'users.Employee'
+AUTH_USER_MODEL = 'users.ManagerTeam'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
