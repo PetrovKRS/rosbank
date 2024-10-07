@@ -2,7 +2,7 @@ from django.contrib import admin
 from core.models import (
     Employee, EmployeeKeyPeople, EmployeeBusFactor,
     EmployeeTrainingApplication, EmployeeGrade,
-    EmployeeSkill, EmployeeCompetency, EmployeePosition
+    EmployeeSkill, EmployeeCompetency, EmployeePosition, EmployeeDevelopmentPlan
 )
 
 
@@ -41,6 +41,11 @@ class EmployeePositionInline(admin.TabularInline):
     extra = 1
 
 
+class EmployeeDevelopmentPlanInline(admin.TabularInline):
+    model = EmployeeDevelopmentPlan
+    extra = 1
+
+
 @admin.register(Employee)
 class UserAdmin(admin.ModelAdmin):
     inlines = [
@@ -50,11 +55,12 @@ class UserAdmin(admin.ModelAdmin):
         EmployeeSkillInline,  # Инлайн для скиллов
         EmployeeCompetencyInline,  # Инлайн для компетенций
         EmployeeGradeInline,
-        EmployeePositionInline
+        EmployeePositionInline,
+        EmployeeDevelopmentPlanInline
     ]
 
     list_display = (
-        'pk', 'email', 'username', 'first_name', 'last_name'
+        'pk', 'employee_id', 'email', 'username', 'first_name', 'last_name'
     )
     search_fields = (
         'username', 'email', 'first_name', 'last_name'

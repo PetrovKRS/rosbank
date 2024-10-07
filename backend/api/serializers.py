@@ -88,3 +88,24 @@ class DevelopmentPlanSerializer(serializers.ModelSerializer):
         fields = (
             'month', 'year', 'key_skill',
         )
+
+
+class IndividualDevelopmentPlanRequestSerializer(serializers.Serializer):
+    employeeIds = serializers.ListField(
+        child=serializers.CharField()
+    )
+    startPeriod = serializers.DictField(
+        child=serializers.CharField(),
+        required=True
+    )
+    endPeriod = serializers.DictField(
+        child=serializers.CharField(),
+        required=True
+    )
+
+class IndividualDevelopmentPlanResponseSerializer(serializers.Serializer):
+    dashboard = serializers.ListField(
+        child=serializers.DictField()
+    )
+    completionForToday = serializers.CharField()
+    
