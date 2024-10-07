@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django_filters import rest_framework as filters
+from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework import (
     mixins,
@@ -58,7 +59,10 @@ class MetricViewSet(viewsets.ViewSet):
             elif metric_type == 'engagement':
                 model = EmployeeEngagement
             else:
-                return Response({"error": "Invalid metric type."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"error": "Invalid metric type."},
+                          status=status.HTTP_400_BAD_REQUEST
+                )
 
             for employee_id in employee_ids:
                 try:
@@ -90,6 +94,3 @@ class MetricViewSet(viewsets.ViewSet):
             return Response(response_serializer.data, status=status.HTTP_200_OK)
 
         return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-
-
