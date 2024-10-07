@@ -1,12 +1,12 @@
 from rest_framework import serializers
-from users.models import Employee
+from users.models import ManagerTeam
 from core.models import (
     DevelopmentPlan, EmployeeDevelopmentPlan, EmployeeEngagement,
     KeyPeople, EmployeeKeyPeople, TrainingApplication, EmployeeTrainingApplication,
     BusFactor, EmployeeBusFactor, Grade, EmployeeGrade, KeySkill, EmployeeKeySkill,
     Team, EmployeeTeam, Position, EmployeePosition, Competency, PositionCompetency,
     TeamPosition, EmployeeCompetency, Skill, EmployeeSkill, SkillForCompetency,
-    ExpectedSkill, EmployeeExpectedSkill, CompetencyForExpectedSkill
+    ExpectedSkill, EmployeeExpectedSkill, CompetencyForExpectedSkill, Employee
 )
 from django.urls import reverse
 from rest_framework.validators import UniqueTogetherValidator
@@ -88,6 +88,16 @@ class DevelopmentPlanSerializer(serializers.ModelSerializer):
         fields = (
             'month', 'year', 'key_skill',
         )
+
+
+class MetricRequestSerializer(serializers.Serializer):
+    employeeIds = serializers.ListField(
+        child=serializers.CharField(),
+        required=False
+    )
+    startPeriod = serializers.DateField(required=True)
+    endPeriod = serializers.DateField(required=True)
+
 
 
 class IndividualDevelopmentPlanRequestSerializer(serializers.Serializer):

@@ -6,7 +6,7 @@ from django.utils.formats import date_format
 from django_filters.utils import verbose_field_name
 
 from users.models import ManagerTeam
-
+import uuid
 
 class Employee(models.Model):
     """ Модель сотрудника. """
@@ -77,10 +77,12 @@ class EmployeeAssesmentSkill(models.Model):
     employee = models.ForeignKey(
         Employee,
         on_delete=models.CASCADE,
+        related_name='assesments_skills',
     )
     assesmentskill = models.ForeignKey(
         AssesmentSkill,
         on_delete=models.CASCADE,
+        verbose_name='Оценка навыка сотрудника',
     )
     assesment = models.IntegerField(
         default=0,
@@ -496,9 +498,8 @@ class EmployeeTeam(models.Model):
         related_name='teams',
         verbose_name='Менеджер команды',
     )
-    employee = models.OneToOneField(
+    employee = models.ManyToManyField(
         Employee,
-        on_delete=models.CASCADE,
         related_name='teams',
     )
     team = models.ForeignKey(

@@ -16,25 +16,7 @@ class Command(BaseCommand):
 
         # Заполняем модель Employee
         employees = []
-        for _ in range(10):
-            username = fake.user_name()
-
-            # Проверка уникальности username
-            while Employee.objects.filter(username=username).exists():
-                username = fake.user_name()
-
-            email = fake.email()
-            # Проверка уникальности email
-            while Employee.objects.filter(email=email).exists():
-                email = fake.email()
-
-            Employee.objects.create(
-                username=username,
-                first_name=fake.first_name(),
-                last_name=fake.last_name(),
-                email=email,
-                status=fake.word(),  # Можешь настроить это значение
-            )
+        
 
         # Заполняем модель DevelopmentPlan
         development_plans = []

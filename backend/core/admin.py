@@ -114,7 +114,11 @@ class TeamAdmin(admin.ModelAdmin):
 
 @admin.register(EmployeeTeam)
 class EmployeeTeamAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('manager', 'team', 'get_employees')
+
+    def get_employees(self, obj):
+        return ", ".join([employee.__str__() for employee in obj.employee.all()])
+    get_employees.short_description = 'Сотрудники'
 
 
 @admin.register(Position)
