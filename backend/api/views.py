@@ -43,6 +43,7 @@ class DevelopmentPlanViewSet(viewsets.ModelViewSet):
 class MetricViewSet(viewsets.ViewSet):
     def create(self, request, metric_type):
         request_serializer = IndividualDevelopmentPlanRequestSerializer(data=request.data)
+        user = self.request.user
 
         if request_serializer.is_valid():
             employee_ids = request_serializer.validated_data['employeeIds']
