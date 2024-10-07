@@ -5,7 +5,7 @@ from django.db import models
 from django.utils.formats import date_format
 from django_filters.utils import verbose_field_name
 
-from users.models import Employee
+from users.models import ManagerTeam
 
 
 class Employee(models.Model):
@@ -490,6 +490,12 @@ class Team(models.Model):
 class EmployeeTeam(models.Model):
     """ Модель -Команда сотрудника-. """
 
+    manager  = models.ForeignKey(
+        ManagerTeam,
+        on_delete=models.CASCADE,
+        related_name='teams',
+        verbose_name='Менеджер команды',
+    )
     employee = models.OneToOneField(
         Employee,
         on_delete=models.CASCADE,
