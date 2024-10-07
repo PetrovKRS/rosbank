@@ -31,12 +31,12 @@ class EmployeeAssesmentSkill(models.Model):
     employee = models.ForeignKey(
         Employee,
         on_delete=models.CASCADE,
-        related_name='assesments',
+        related_name='assesments_skills',
     )
     assesmentskill = models.ForeignKey(
-        Assesment,
+        AssesmentSkill,
         on_delete=models.CASCADE,
-        related_name='employees',
+        verbose_name='Оценка навыка сотрудника',
     )
     assesment = models.IntegerField(
         default=0,
@@ -50,9 +50,6 @@ class EmployeeAssesmentSkill(models.Model):
         'employee',
     )
 
-
-    def __str__(self):
-        return self.assesment_name
 
 class DevelopmentPlan(models.Model):
     """ Модель -План развития-."""

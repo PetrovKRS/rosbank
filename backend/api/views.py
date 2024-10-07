@@ -57,6 +57,8 @@ class MetricViewSet(viewsets.ViewSet):
                 model = EmployeeDevelopmentPlan
             elif metric_type == 'engagement':
                 model = EmployeeEngagement
+            elif metric_type == 'employees':
+                return self.get_employee_data(employee_ids, start_period, end_period)  # Обрабатываем данные по сотрудникам
             else:
                 return Response({"error": "Invalid metric type."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -90,6 +92,34 @@ class MetricViewSet(viewsets.ViewSet):
             return Response(response_serializer.data, status=status.HTTP_200_OK)
 
         return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
+    def get_employee_data(self, employee_ids, start_period, end_period):
+        """ Логика получения данных по количеству сотрудников. """
+        dashboard = []
+
+        for employee_id in employee_ids:
+            try:
+                employee = Employee.objects.get(employee_id=employee_id)
+                number_of_employees = Employee.objects.count()
+                number_of_bus_factors = BusFactor.objects.count()
+                number_of_key_people = Employee.objects.filter(is_key_person=True).count()
+
+                dashboard.append({
+                    "period": {
+                        "month": start_period['month'],
+                        "year": start_period['year']
+                    },
+                    "countData": [
+                        {
+                            "numberOfEmployees": str(number_of_employees),
+                            "numberOfBusFactors": str(number_of_bus_factors),
+                            "numberOfKeyPeople": str(number_of_key_people)
+                        }
+                    ]
+                })
+            except Employee.DoesNotExist:
+                continue
+
+        return Response({"count": dashboard}, status=status.HTTP_200_OK)
 
 
