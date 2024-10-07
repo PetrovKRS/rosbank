@@ -8,6 +8,52 @@ from django_filters.utils import verbose_field_name
 from users.models import Employee
 
 
+# id сотрудника, название навыка, оценка навыка сотрудника(число 1-5),
+# вовлеченность сотрудника
+class AssesmentSkill(models.Model):
+    assesmentskill_name = models.CharField(
+        max_length=255,
+        unique=True,
+        verbose_name='Название оценки',
+    )
+
+    class Meta:
+        verbose_name = 'Оценка навыка'
+        verbose_name_plural = 'Оценки навыков'
+        ordering = (
+            'assesmentskill_name',
+        )
+
+
+class EmployeeAssesmentSkill(models.Model):
+    """ Модель -Оценка сотрудника-. """
+
+    employee = models.ForeignKey(
+        Employee,
+        on_delete=models.CASCADE,
+        related_name='assesments',
+    )
+    assesmentskill = models.ForeignKey(
+        Assesment,
+        on_delete=models.CASCADE,
+        related_name='employees',
+    )
+    assesment = models.IntegerField(
+        default=0,
+        verbose_name='Оценка навыка сотрудника',
+    )
+
+    class Meta:
+        verbose_name = 'Оценка навыка сотрудника'
+        verbose_name_plural = 'Оценки навыков сотрудников'
+        ordering = (
+        'employee',
+    )
+
+
+    def __str__(self):
+        return self.assesment_name
+
 class DevelopmentPlan(models.Model):
     """ Модель -План развития-."""
 
