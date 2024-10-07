@@ -5,11 +5,57 @@ from django.db import models
 from django.utils.formats import date_format
 from django_filters.utils import verbose_field_name
 
-from users.models import Employee
+from users.models import ManagerTeam
+import uuid
+
+class Employee(models.Model):
+    """ Модель сотрудника. """
+
+    employee_id = models.CharField(
+        max_length=100,
+        unique=True,
+        editable=False,  # Поле не должно редактироваться
+        default=uuid.uuid4,  # Генерация уникального идентификатора
+    )
+    first_name = models.CharField(
+        max_length=100,
+        verbose_name='Имя',
+    )
+    last_name = models.CharField(
+        max_length=100,
+        verbose_name='Фамилия',
+    )
+    email = models.EmailField(
+        max_length=100,
+        unique=True,
+        verbose_name='E-mail'
+    )
+    status = models.CharField(
+        max_length=50
+    )  # E.g., completed, in-progress
+    registration_date = models.DateField(
+        auto_now_add=True,
+        db_index=True,
+        verbose_name='Дата регистрации сотрудника'
+    )
+    last_login_date = models.DateField(
+        auto_now_add=True,
+        db_index=True,
+        verbose_name='Дата последнего входа сотрудника',
+    )
+
+    class Meta:
+        verbose_name = 'Сотрудник'
+        verbose_name_plural = 'Сотрудники'
+        ordering = (
+            'first_name',
+            'last_name',
+        )
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} ({self.employee_id})"
 
 
-# id сотрудника, название навыка, оценка навыка сотрудника(число 1-5),
-# вовлеченность сотрудника
 class AssesmentSkill(models.Model):
     assesmentskill_name = models.CharField(
         max_length=255,
@@ -34,6 +80,7 @@ class EmployeeAssesmentSkill(models.Model):
         related_name='assesments_skills',
     )
     assesmentskill = models.ForeignKey(
+        AssesmentSkill,
         AssesmentSkill,
         on_delete=models.CASCADE,
         verbose_name='Оценка навыка сотрудника',

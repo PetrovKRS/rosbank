@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django_filters import rest_framework as filters
+from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework import (
     mixins,
@@ -10,7 +11,7 @@ from rest_framework import (
     generics
 )
 from users.models import (
-   Employee,
+    ManagerTeam,
 )
 from core.models import (
     DevelopmentPlan, EmployeeDevelopmentPlan, EmployeeEngagement,
@@ -18,7 +19,7 @@ from core.models import (
     BusFactor, EmployeeBusFactor, Grade, EmployeeGrade, KeySkill, EmployeeKeySkill,
     Team, EmployeeTeam, Position, EmployeePosition, Competency, PositionCompetency,
     TeamPosition, EmployeeCompetency, Skill, EmployeeSkill, SkillForCompetency,
-    ExpectedSkill, EmployeeExpectedSkill, CompetencyForExpectedSkill
+    ExpectedSkill, EmployeeExpectedSkill, CompetencyForExpectedSkill, Employee
 )
 from .serializers import (
     EmployeeSerializer, DevelopmentPlanSerializer, IndividualDevelopmentPlanRequestSerializer, IndividualDevelopmentPlanResponseSerializer
@@ -60,7 +61,10 @@ class MetricViewSet(viewsets.ViewSet):
             elif metric_type == 'employees':
                 return self.get_employee_data(employee_ids, start_period, end_period)  # Обрабатываем данные по сотрудникам
             else:
-                return Response({"error": "Invalid metric type."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"error": "Invalid metric type."},
+                          status=status.HTTP_400_BAD_REQUEST
+                )
 
             for employee_id in employee_ids:
                 try:
