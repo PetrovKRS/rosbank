@@ -22,7 +22,8 @@ from core.models import (
     ExpectedSkill, EmployeeExpectedSkill, CompetencyForExpectedSkill, Employee
 )
 from .serializers import (
-    EmployeeSerializer, DevelopmentPlanSerializer, IndividualDevelopmentPlanRequestSerializer, IndividualDevelopmentPlanResponseSerializer, MetricRequestSerializer
+    EmployeeSerializer, DevelopmentPlanSerializer, IndividualDevelopmentPlanRequestSerializer,
+    IndividualDevelopmentPlanResponseSerializer, MetricRequestSerializer, SkillSerializer
 )
 # from api.filters import (
 #     EmployeeFilter
@@ -146,4 +147,51 @@ class MetricViewSet(viewsets.ViewSet):
         return Response({"count": dashboard}, status=status.HTTP_200_OK)
 
 
+class SkillViewSet(viewsets.ModelViewSet):
+    """ . """
+    queryset = Skill.objects.all()
+    serializer_class = SkillSerializer
 
+    def list(self, request):
+        # Сериализация входящих данных
+        serializer = SkillAverageRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            employee_ids = serializer.validated_data['employeeIds']
+            skill_type = serializer.validated_data['skillType']
+
+            # Получаем навыки заданного типа (hard/soft) для указанных сотрудников
+            skills_data = EmployeeSkill.objects.filter(
+                employee__employee_id__in=employee_ids,
+                skill__skill_type=skill_type
+            ).values('skill__skill_name', 'skill_level')
+
+            # Формируем список с навыками и средними оценками
+            skills = [{"skillName": data['skill__skill_name'], "averageAssessment": data['skill_level']} for data in skills_data]
+
+            response_serializer = SkillAverageResponseSerializer({"skills": skills})
+            return Response(response_serializer.data, status=status.HTTP_200_OK)
+
+        # В случае ошибки валидации возвращаем ошибку
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def create(self, request):
+        # Сериализация входящих данных
+        serializer = SkillAverageRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            employee_ids = serializer.validated_data['employeeIds']
+            skill_type = serializer.validated_data['skillType']
+
+            # Получаем навыки заданного типа (hard/soft) для указанных сотрудников
+            skills_data = EmployeeSkill.objects.filter(
+                employee__employee_id__in=employee_ids,
+                skill__skill_type=skill_type
+            ).values('skill__skill_name').annotate(avg_assessment=Avg('skill_level'))
+
+            # Формируем список с навыками и средними оценками
+            skills = [{"skillName": data['skill__skill_name'], "averageAssessment": data['avg_assessment']} for data in skills_data]
+
+            response_serializer = SkillAverageResponseSerializer({"skills": skills})
+            return Response(response_serializer.data, status=status.HTTP_200_OK)
+
+        # В случае ошибки валидации возвращаем ошибку
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

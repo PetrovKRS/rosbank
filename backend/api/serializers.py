@@ -49,9 +49,15 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
     worker = serializers.SerializerMethodField()
     skills = SkillSerializer(many=True)
-    competencies = CompetencySerializer(source='employee_competencies', many=True)
-    position = serializers.CharField(source='positions.first.position.position_name', allow_null=True)
-    grade = serializers.CharField(source='grades.grade.grade_name', )
+    competencies = CompetencySerializer(
+        source='employee_competencies', many=True
+    )
+    position = serializers.CharField(
+        source='positions.first.position.position_name', allow_null=True
+    )
+    grade = serializers.CharField(
+        source='grades.grade.grade_name',
+    )
 
     key_people = serializers.SerializerMethodField()
     bus_factor = serializers.SerializerMethodField()
@@ -83,6 +89,8 @@ class EmployeeSerializer(serializers.ModelSerializer):
 class DevelopmentPlanSerializer(serializers.ModelSerializer):
     """ ."""
 
+    key_skill = serializers.CharField(source='key_skill.skill_name')
+
     class Meta:
         model = DevelopmentPlan
         fields = (
@@ -113,9 +121,27 @@ class IndividualDevelopmentPlanRequestSerializer(serializers.Serializer):
         required=True
     )
 
+
 class IndividualDevelopmentPlanResponseSerializer(serializers.Serializer):
     dashboard = serializers.ListField(
         child=serializers.DictField()
     )
     completionForToday = serializers.CharField()
-    
+
+
+class SkillAverageRequestSerializer(serializers.Serializer):
+    employeeIds = serializers.ListField(
+        child=serializers.UUIDField(),  # Ожидаем список UUID сотрудников
+        allow_empty=False
+    )
+    skill_type = serializers.ChoiceField(
+        choices=[('hard', 'Hard Skill'), ('soft', 'Soft Skill')],  # Тип навыка
+        required=True
+    )
+
+
+class SkillAverageResponseSerializer(serializers.Serializer):
+    skills = serializers.ListField(
+        child=serializers.DictField(),  # Список словарей с навыками
+        required=True
+    )

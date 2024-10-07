@@ -5,7 +5,7 @@ from api.views import (
     DevelopmentPlanViewSet, MetricViewSet, #WorkersViewSet, 
 )
 
-from .views import DevelopmentPlan
+from .views import DevelopmentPlan, SkillViewSet
 from core.models import AssesmentSkill
 
 router_v1 = routers.DefaultRouter()
@@ -14,8 +14,7 @@ router_v1 = routers.DefaultRouter()
 # router_v1.register(r'workers/list', WorkersViewSet, basename='workers')
 router_v1.register(r'development_plan', DevelopmentPlanViewSet, basename='development_plan')
 router_v1.register(r'metrics/(?P<metric_type>development_plan|engagement)', MetricViewSet, basename='metric')
-# router_v1.register(r'metrics/skill-assessment)', AssesmentSkillViewSet, basename='metric')
-
+router_v1.register(r'skills/(?P<skill_type>hard|soft)', SkillViewSet, basename='skill')
 
 
 urlpatterns = [
