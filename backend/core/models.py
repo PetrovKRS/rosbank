@@ -626,7 +626,7 @@ class EmployeeSkill(models.Model):
         )
 
     def __str__(self):
-        return f"{self.employee} - {self.skill} ({self.skill_level})"
+        return f"{self.employee.first_name} {self.employee.last_name} - {self.skill.skill_name} ({self.skill_level})"
 
 
 class SkillForCompetency(models.Model):
