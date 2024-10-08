@@ -35,9 +35,9 @@ services:
     build: ./nginx/
     env_file: .env
     ports:
-      - 9000:80
+      - 8000:80
     volumes:
-      - static:/staticfiles
-      - media:/media
+      - static:/var/html/static/
+      - media:/var/html/media/
     depends_on:
       - backend
