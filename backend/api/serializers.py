@@ -188,3 +188,18 @@ class TeamMetricsRequestSerializer(serializers.Serializer):
     endPeriod = serializers.DictField(
         child=serializers.CharField()
     )
+
+
+class SkillAssessmentSerializer(serializers.Serializer):
+    """ """
+
+    skillId = serializers.IntegerField()
+    skillName = serializers.CharField(max_length=255)
+    plannedResult = serializers.FloatField()
+    actualResult = serializers.FloatField()
+
+
+class SkillAssessmentResponseSerializer(serializers.Serializer):
+    """ """
+
+    data = SkillAssessmentSerializer(many=True)

@@ -300,3 +300,46 @@ class SkillViewSet(viewsets.ModelViewSet):
 
         # В случае ошибки валидации возвращаем ошибку
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TeamSkillAssessmentViewSet(viewsets.ViewSet):
+
+    def create(self, request):
+        employee_ids = request.data.get('employeeIds', [])
+        skill_domen = request.data.get('skillDomen', '')
+
+        # Проверяем, что были переданы employeeIds и skillDomen
+        if not employee_ids or not skill_domen:
+            return Response(
+                {"error": "employeeIds and skillDomen are required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Фильтруем навыки по домену (например, Hard/Soft)
+        skills = Skill.objects.filter(skill_type=skill_domen)
+
+        skills_data = []
+
+        # Проходим по каждому навыку и считаем средние значения плановых и фактических оценок
+        for skill in skills:
+            planned_avg = EmployeeSkill.objects.filter(
+                skill=skill,
+                employee__employee_id__in=employee_ids
+            ).aggregate(planned_avg=Avg('planned_assessment'))['planned_avg']
+
+            actual_avg = EmployeeSkill.objects.filter(
+                skill=skill,
+                employee__employee_id__in=employee_ids
+            ).aggregate(actual_avg=Avg('actual_assessment'))['actual_avg']
+
+            if planned_avg is not None and actual_avg is not None:
+                skills_data.append({
+                    'skillId': skill.id,
+                    'skillName': skill.skill_name,
+                    'plannedResult': round(planned_avg, 2),
+                    'actualResult': round(actual_avg, 2)
+                })
+
+        # Формируем ответ
+        response_data = {'data': skills_data}
+        return Response(response_data, status=status.HTTP_200_OK)

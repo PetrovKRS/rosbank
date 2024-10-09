@@ -1,8 +1,9 @@
-from tabnanny import verbose
+from enum import Enum
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.formats import date_format
+from django.views.decorators.http import condition
 from django_filters.utils import verbose_field_name
 
 from users.models import ManagerTeam
@@ -678,15 +679,32 @@ class EmployeeCompetency(models.Model):
         return f"{self.employee} - {self.competency} ({self.competency_level})"
     
 
+class SkillTypeEnum(Enum):
+    HARD = 'hard'
+    SOFT = 'soft'
+
+    @classmethod
+    def choices(cls):
+        return [(key.value, key.name.capitalize()) for key in cls]
+
+
 class Skill(models.Model):
-    """ Модель -Навык-. """
+    """ Модель -Навык- с выбором типа навыка (hard или soft). """
 
     skill_name = models.CharField(
         max_length=255,
         verbose_name='Название навыка',
     )
+    skill_type = models.CharField(
+        max_length=4,
+        choices=SkillTypeEnum.choices(),
+        default=SkillTypeEnum.HARD,
+        verbose_name='Тип навыка',
+    )
     employee_count = models.IntegerField(
-        default=0)  # Количество сотрудников с данным навыком
+        default=0,
+        verbose_name='Количество сотрудников с данным навыком',
+    )
 
     class Meta:
         verbose_name = 'Навык'
@@ -696,7 +714,7 @@ class Skill(models.Model):
         )
 
     def __str__(self):
-        return self.skill_name
+        return f'{self.skill_name} ({self.skill_type})'
 
 
 class EmployeeSkill(models.Model):
