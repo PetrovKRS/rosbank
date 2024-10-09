@@ -42,36 +42,67 @@ class CompetencySerializer(serializers.ModelSerializer):
         fields = (
             'competency', 'competency_level'
         )
+        
+class TrainingApplicationSerializer(serializers.ModelSerializer):
+    """ Сериализатор для заявок на обучение. """
 
+    training_name = serializers.CharField(source='training_application.training_name')
+
+    class Meta:
+        model = EmployeeTrainingApplication
+        fields = (
+            'id', 'training_name',  # Указываем правильное поле через связь
+        )
+        
+
+class AssesmentOfPotentionSerializer(serializers.Serializer):
+    """ Сериализатор для оценки потенциала сотрудника. """
+    assesmentLevel = serializers.CharField(source='grades.grade.grade_name')
+    involvmentLevel = serializers.CharField(source='employee_engagements.engagement.engagement_name')
+    
+
+    
 
 class EmployeeSerializer(serializers.ModelSerializer):
     """ Основной сериализатор для сотрудников. """
 
     worker = serializers.SerializerMethodField()
-    skills = SkillSerializer(many=True)
-    competencies = CompetencySerializer(
-        source='employee_competencies', many=True
-    )
+    # skills = SkillSerializer(many=True)
+    # competencies = CompetencySerializer(
+    #     source='employee_competencies', many=True
+    # )
     position = serializers.CharField(
         source='positions.first.position.position_name', allow_null=True
     )
     grade = serializers.CharField(
         source='grades.grade.grade_name',
     )
+    assesmentOfPotention = AssesmentOfPotentionSerializer(source='*') 
 
     key_people = serializers.SerializerMethodField()
     bus_factor = serializers.SerializerMethodField()
-    education = serializers.SerializerMethodField()
+    education = TrainingApplicationSerializer(source='training_applications', many=True)
+    skill = serializers.SerializerMethodField()
 
     class Meta:
         model = Employee
         fields = (
             'id', 'position', 'worker', 'grade', 'key_people',
-            'bus_factor', 'education', 'skills','competencies'
+            'bus_factor', 'education', 'assesmentOfPotention', 'skill'
         )
 
     def get_worker(self, obj):
         return f"{obj.first_name} {obj.last_name}"
+    
+    def get_skill(self, obj):
+        """ Рассчитывает средний уровень навыков сотрудника. """
+        skills = obj.skills.all()  # Получаем все связанные навыки
+        if not skills:
+            return 0  # Если навыков нет, возвращаем 0
+
+        total_skill_level = sum(employee_skill.skill_level for employee_skill in skills)
+        average_level = total_skill_level / len(skills)
+        return average_level
 
     # Проверка наличия записи в EmployeeKeyPeople
     def get_key_people(self, obj):
