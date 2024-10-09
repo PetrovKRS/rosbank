@@ -38,20 +38,22 @@ from django.db.models import Avg
 #     # filter_backends = (filters.DjangoFilterBackend,)
 #     # filterset_class = EmployeeFilter
 
-class WorkersViewSet(viewsets.ModelViewSet): 
+class EmployeesViewSet(viewsets.ModelViewSet): 
     serializer_class = EmployeeSerializer
     
     def get_queryset(self):
         team_slug = self.kwargs.get('team_slug')  # Получаем слаг команды
-        user = self.request.user  # Получаем текущего пользователя
+        print(team_slug)
+        # user = self.request.user
+        # user = ManagerTeam.objects.get(id=1)
         
         team = Team.objects.get(slug=team_slug)  # Предполагается, что у команды есть связь с slug
-        manager = ManagerTeam.objects.get(user=user)  # Предполагается, что у менеджера есть связь с пользователем
+        manager = ManagerTeam.objects.get(id=1)  # Предполагается, что у менеджера есть связь с пользователем
 
         # Возвращаем сотрудников, относящихся к команде текущего менеджера
         return Employee.objects.filter(
-            employeeteam__team=team,
-            employeeteam__manager=manager
+            teams__team=team,  # Используем ManyToMany связь
+            teams__manager=manager  # Фильтруем по менеджеру
         )
 
 

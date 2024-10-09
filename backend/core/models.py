@@ -480,6 +480,11 @@ class Team(models.Model):
         max_length=255,
         verbose_name='Название команды',
     )
+    slug = models.SlugField(
+        max_length=255,
+        unique=True,
+        verbose_name='Слаг команды',
+    )
 
     class Meta:
         verbose_name = 'Команда'
@@ -707,8 +712,8 @@ class EmployeeSkill(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Навык',
     )
-    skill_level = models.CharField(
-        max_length=255,
+    skill_level = models.IntegerField(
+        default=0,
         verbose_name='Уровень навыка сотрудника',
     )
 
@@ -827,3 +832,4 @@ class CompetencyForExpectedSkill(models.Model):
 
     def __str__(self):
         return f"{self.expected_skill} - {self.competency}"
+
