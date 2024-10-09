@@ -60,13 +60,15 @@ class EmployeeEngagementAdmin(admin.ModelAdmin):
 @admin.register(KeyPeople)
 class KeyPeopleAdmin(admin.ModelAdmin):
     readonly_fields = (
-        'employee_count',
+        'employee_count', 
     )
 
 
 @admin.register(EmployeeKeyPeople)
 class EmployeeKeyPeopleAdmin(admin.ModelAdmin):
-    pass
+    list_display = (
+        'add_date',
+    )
 
 
 @admin.register(TrainingApplication)
@@ -90,7 +92,9 @@ class BusFactorAdmin(admin.ModelAdmin):
 
 @admin.register(EmployeeBusFactor)
 class EmployeeBusFactorAdmin(admin.ModelAdmin):
-    pass
+    list_display = (
+        'add_date',
+    )
 
 
 @admin.register(Grade)

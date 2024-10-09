@@ -32,6 +32,9 @@ from .serializers import (
 from rest_framework.response import Response
 from django.db.models import Avg
 
+from datetime import datetime
+from calendar import month_name
+
 # class WorkersViewSet(viewsets.ModelViewSet):
 #     queryset = Employee.objects.all()
 #     serializer_class = EmployeeSerializer
@@ -62,9 +65,10 @@ class DevelopmentPlanViewSet(viewsets.ModelViewSet):
     queryset = DevelopmentPlan.objects.all()
     serializer_class = DevelopmentPlanSerializer
 
-from datetime import datetime
-from calendar import month_name
+
 class MetricViewSet(viewsets.ViewSet): 
+    # Возможно это проблема с тем что доступ к сотруднику имеет любой менеджер!!!!!! Возможно есть лишнии поля
+    
     def create(self, request, metric_type):
         request_serializer = IndividualDevelopmentPlanRequestSerializer(data=request.data)
 
@@ -84,10 +88,10 @@ class MetricViewSet(viewsets.ViewSet):
             model = None
             if metric_type == 'development_plan':
                 model = EmployeeDevelopmentPlan
-            elif metric_type == 'engagement':
+            elif metric_type == 'involvement':
                 model = EmployeeEngagement
-            elif metric_type == 'employees':
-                return self.get_employee_data(employee_ids, start_date, end_date)  # Обрабатываем данные по сотрудникам
+            # elif metric_type == 'employees':
+            #     return self.get_employee_data(employee_ids, start_date, end_date)  # Обрабатываем данные по сотрудникам
             else:
                 return Response(
                     {"error": "Invalid metric type."},
@@ -147,37 +151,66 @@ class MetricViewSet(viewsets.ViewSet):
         end_date = datetime.strptime(f"{end_period['year']}-{end_period['month']}-09", "%Y-%B-%d").date()
         return start_date, end_date
 
-    def get_employee_data(self, employee_ids, start_period, end_period):
+class TeamCountEmployeeViewSet(viewsets.ViewSet):
+    def create(self, request, team_slug):
+        request_serializer = TeamMetricsRequestSerializer(data=request.data)
+
+        if request_serializer.is_valid():
+            start_period = request_serializer.validated_data['startPeriod']
+            end_period = request_serializer.validated_data['endPeriod']
+
+            return self.get_team_employee_data(team_slug, start_period, end_period)
+
+        return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_team_employee_data(self, team_slug, start_period, end_period):
         dashboard = []
 
-        for employee_id in employee_ids:
-            try:
-                employee = Employee.objects.get(employee_id=employee_id)
-                number_of_employees = Employee.objects.count()
-                number_of_bus_factors = BusFactor.objects.count()
-                number_of_key_people = Employee.objects.filter(is_key_person=True).count()
+        # Получаем команду по слагу
+        try:
+            team = EmployeeTeam.objects.get(team__slug=team_slug)
+            employees = team.employee.all()  # Получаем всех сотрудников команды
 
-                dashboard.append({
-                    "period": {
-                        "start": start_period,
-                        "end": end_period
-                    },
-                    "countData": [
-                        {
-                            "numberOfEmployees": str(number_of_employees),
-                            "numberOfBusFactors": str(number_of_bus_factors),
-                            "numberOfKeyPeople": str(number_of_key_people)
-                        }
-                    ]
-                })
-            except Employee.DoesNotExist:
-                continue
+            # Преобразуем даты начала и окончания
+            start_date, end_date = self.convert_to_date(start_period, end_period)
 
-        return Response({"count": dashboard}, status=status.HTTP_200_OK)
+            # Получаем количество сотрудников, Bus факторов и Key People
+            number_of_employees = employees.count()
+            number_of_bus_factors = EmployeeBusFactor.objects.filter(
+                employee__in=employees,
+                add_date__range=[start_date, end_date]
+            ).count()
+            number_of_key_people = EmployeeKeyPeople.objects.filter(
+                employee__in=employees,
+                add_date__range=[start_date, end_date]
+            ).count()
+
+            # Добавляем результаты в dashboard
+            dashboard.append({
+                "period": {
+                    "month": month_name[start_date.month],
+                    "year": str(start_date.year)
+                },
+                "numberOfEmployee": str(number_of_employees),
+                "numberOfBusFactor": str(number_of_bus_factors),
+                "numberOfKeyPeople": str(number_of_key_people)
+            })
+
+            return Response({"dashboard": dashboard}, status=status.HTTP_200_OK)
+
+        except EmployeeTeam.DoesNotExist:
+            return Response({"error": "Team not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    def convert_to_date(self, start_period, end_period):
+        start_date = datetime.strptime(f"{start_period['year']}-{start_period['month']}-08", "%Y-%B-%d").date()
+        end_date = datetime.strptime(f"{end_period['year']}-{end_period['month']}-08", "%Y-%B-%d").date()
+        return start_date, end_date
 #################################
 class TeamMetricViewSet(viewsets.ViewSet):
-    def create(self, request,):
-        # Получаем данные из запроса
+    def create(self, request, team_slug, metric_type):
+        # Возможно это проблема с тем что доступ к команде имеет любой менеджер!!!!!! Возможно есть лишнии поля
+        
+        
         request_serializer = TeamMetricsRequestSerializer(data=request.data)
 
         if request_serializer.is_valid():
@@ -189,22 +222,31 @@ class TeamMetricViewSet(viewsets.ViewSet):
 
             # Получаем команду по слагу
             try:
-                team = EmployeeTeam.objects.get(team__team_name='Кто если не мы')
+                team = EmployeeTeam.objects.get(team__slug=team_slug)
                 employees = team.employee.all()  # Все сотрудники в команде
-            except Team.DoesNotExist:
+            except EmployeeTeam.DoesNotExist:
                 return Response({"error": "Team not found."}, status=status.HTTP_404_NOT_FOUND)
 
-            # Сбор метрик
+            # Инициализация переменных для метрик
             dashboard = []
             total_performance = 0
             employee_count = employees.count()
 
-            # Группируем метрики по месяцам
+            # Группировка метрик по месяцам
             metrics_by_month = {}
-            
+
+            # Определяем, какие метрики использовать (вовлеченность или план развития)
+            if metric_type == 'development_plan':
+                model = EmployeeDevelopmentPlan
+            elif metric_type == 'involvement':
+                model = EmployeeEngagement
+
+            else:
+                return Response({"error": "Invalid metric type."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Проходим по сотрудникам и собираем метрики
             for employee in employees:
-                # Получаем метрики для каждого сотрудника
-                employee_metrics = EmployeeDevelopmentPlan.objects.filter(
+                employee_metrics = model.objects.filter(
                     employee=employee,
                     add_date__range=[start_date, end_date]
                 )
@@ -212,7 +254,7 @@ class TeamMetricViewSet(viewsets.ViewSet):
                 if employee_metrics.exists():
                     for metric in employee_metrics:
                         month_year_key = (metric.add_date.year, metric.add_date.month)
-                        performance_score = metric.performance_score  # или engagement_level
+                        performance_score = metric.performance_score
 
                         # Суммируем производительность
                         total_performance += performance_score
@@ -223,7 +265,7 @@ class TeamMetricViewSet(viewsets.ViewSet):
                         metrics_by_month[month_year_key] += performance_score
 
             # Подсчет средней производительности
-            # Формируем dashboard
+            # Формирование dashboard
             for (year, month), performance in metrics_by_month.items():
                 dashboard.append({
                     "period": {
