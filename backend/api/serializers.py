@@ -145,3 +145,15 @@ class SkillAverageResponseSerializer(serializers.Serializer):
         child=serializers.DictField(),  # Список словарей с навыками
         required=True
     )
+
+
+class TeamMetricsRequestSerializer(serializers.Serializer):
+    employeeIds = serializers.ListField(
+        child=serializers.CharField()
+    )
+    startPeriod = serializers.DictField(
+        child=serializers.CharField()
+    )
+    endPeriod = serializers.DictField(
+        child=serializers.CharField()
+    )

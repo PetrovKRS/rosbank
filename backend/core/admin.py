@@ -30,11 +30,17 @@ class DevelopmentPlanAdmin(admin.ModelAdmin):
     readonly_fields = (
         'employee_count',
     )
-
+    
 
 @admin.register(EmployeeDevelopmentPlan)
 class EmployeeDevelopmentPlanAdmin(admin.ModelAdmin):
-    pass
+    list_display = (
+        'employee', 'development_plan', 'performance_score',
+        'add_date',
+    )
+    fields = (
+        'employee', 'development_plan', 'performance_score', 'add_date'
+    )
 
 
 @admin.register(Engagement)
@@ -46,7 +52,9 @@ class EngagementAdmin(admin.ModelAdmin):
 
 @admin.register(EmployeeEngagement)
 class EmployeeEngagementAdmin(admin.ModelAdmin):
-    pass
+    list_display = (
+        'employee', 'engagement', 'performance_score', 'add_date',
+    )
 
 
 @admin.register(KeyPeople)
