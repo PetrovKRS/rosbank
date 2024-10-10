@@ -6,7 +6,7 @@ from core.models import (
     BusFactor, EmployeeBusFactor, Grade, EmployeeGrade, KeySkill, EmployeeKeySkill,
     Team, EmployeeTeam, Position, EmployeePosition, Competency, PositionCompetency,
     TeamPosition, EmployeeCompetency, Skill, EmployeeSkill, SkillForCompetency,
-    ExpectedSkill, EmployeeExpectedSkill, CompetencyForExpectedSkill, Employee
+    ExpectedSkill, EmployeeExpectedSkill, SkillTypeEnum, Employee
 )
 from django.urls import reverse
 from rest_framework.validators import UniqueTogetherValidator
@@ -190,3 +190,20 @@ class SkillDataSerializer(serializers.Serializer):
 class TeamSkillAssessmentResponseSerializer(serializers.Serializer):
     period = PeriodSerializer()
     skillsData = serializers.ListField(child=SkillDataSerializer())
+
+
+
+class SkillDomenRequestSerializer(serializers.Serializer):
+    skillDomen = serializers.ChoiceField(
+        choices=SkillTypeEnum.choices(),
+        help_text="Тип навыка: hard или soft"
+    )
+    
+    
+class CompetencySerializer(serializers.Serializer):
+    competencyId = serializers.IntegerField()
+    skillDomen = serializers.CharField()
+    competencyName = serializers.CharField()
+    plannedResult = serializers.FloatField()
+    actualResult = serializers.FloatField()
+    

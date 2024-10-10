@@ -164,8 +164,29 @@ class CompetencyAdmin(admin.ModelAdmin):
 
 @admin.register(EmployeeCompetency)
 class EmployeeCompetencyAdmin(admin.ModelAdmin):
-    pass
+    # Отображаем все поля в форме редактирования
+    fields = (
+        'employee',
+        'competency',
+        'competency_level',
+        'planned_result',
+        'actual_result',
+    )
+    
+    # Отображаем все поля в списке объектов
+    list_display = (
+        'employee',
+        'competency',
+        'competency_level',
+        'planned_result',
+        'actual_result',
+    )
 
+    # Добавьте возможность фильтрации по полям (опционально)
+    list_filter = ('competency',)
+
+    # Добавьте возможность поиска по полям (опционально)
+    search_fields = ('employee__name', 'competency__competency_name',)
 
 @admin.register(Skill)
 class SkillAdmin(admin.ModelAdmin):

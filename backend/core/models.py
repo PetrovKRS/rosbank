@@ -574,6 +574,15 @@ class EmployeePosition(models.Model):
         return f"{self.employee} - {self.position}"
 
 
+class SkillTypeEnum(Enum):
+    HARD = 'hard'
+    SOFT = 'soft'
+
+    @classmethod
+    def choices(cls):
+        return [(key.value, key.name.capitalize()) for key in cls]
+
+
 class Competency(models.Model):
     """ Модель -Компетенция-. """
 
@@ -584,6 +593,12 @@ class Competency(models.Model):
     employee_count = models.IntegerField(
         default=0,
         verbose_name='Количество сотрудников с данной компетенцией'
+    )
+    competency_type = models.CharField(
+        max_length=4,
+        choices=SkillTypeEnum.choices(),
+        default=SkillTypeEnum.HARD,
+        verbose_name='Тип компетенции',
     )
 
     class Meta:
@@ -652,7 +667,6 @@ class TeamPosition(models.Model):
 
 class EmployeeCompetency(models.Model):
     """ Модель -Компетенция сотрудника-. """
-
     employee = models.ForeignKey(
         Employee,
         on_delete=models.CASCADE,
@@ -667,25 +681,24 @@ class EmployeeCompetency(models.Model):
         max_length=255,
         verbose_name='Уровень компетенции сотрудника',
     )
+    planned_result = models.FloatField(
+        default=0.0,
+        verbose_name='Плановая оценка',
+    )
+    actual_result = models.FloatField(
+        default=0.0,
+        verbose_name='Фактическая оценка',
+    )
 
     class Meta:
         verbose_name = 'Компетенция сотрудника'
         verbose_name_plural = 'Компетенции сотрудников'
-        ordering = (
-            'competency',
-        )
+        ordering = ('competency',)
 
     def __str__(self):
         return f"{self.employee} - {self.competency} ({self.competency_level})"
     
 
-class SkillTypeEnum(Enum):
-    HARD = 'hard'
-    SOFT = 'soft'
-
-    @classmethod
-    def choices(cls):
-        return [(key.value, key.name.capitalize()) for key in cls]
 
 
 class Skill(models.Model):
