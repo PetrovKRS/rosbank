@@ -22,10 +22,12 @@ router_v1.register(r'teams/(?P<team_slug>[\w-]+)/employees', EmployeesViewSet, b
 router_v1.register(r'metrics/(?P<metric_type>development_plan|involvement)', MetricViewSet, basename='metric')# Добавить Получение оценки навыков сотрудника individual-skill-assessment
 router_v1.register(r'teams/(?P<team_slug>[\w-]+)/(?P<metric_type>development_plan|involvement)', TeamMetricViewSet, basename='team_metric') # План развития вовлеченность команды
 
-router_v1.register(r'teams/media/metrics/team-skill-assessment', SkillAssessmentViewSet,
-                  basename='team-skill-assessment')
-router_v1.register(r'teams/media/metrics/individual-skill-assessment', SkillAssessmentViewSet,
-                 basename='individual-skill-assessment')
+# Маршрут для получения средних значений навыков команды
+router_v1.register(r'teams/media/skills', SkillAssessmentViewSet, basename='team-skill-assessment')
+# Маршрут для получения средних значений навыков сотрудника
+router_v1.register(r'teams/media/individual-skills', SkillAssessmentViewSet, basename='individual-skill-assessment')
+# Маршрут для получения уровня навыка сотрудника
+router_v1.register(r'teams/media/skills/level', SkillAssessmentViewSet, basename='skill-level-assessment')
 
 
 urlpatterns = [
