@@ -82,7 +82,7 @@ class EmployeeAssesmentSkill(models.Model):
         on_delete=models.CASCADE,
         related_name='assesments_skills',
     )
-    avg_assesment_skill = models.ForeignKey(
+    assesmentskill = models.ForeignKey(
         AssesmentSkill,
         on_delete=models.CASCADE,
         verbose_name='Оценка навыка сотрудника',
@@ -143,19 +143,10 @@ class EmployeeDevelopmentPlan(models.Model):
         decimal_places=2,
         verbose_name='Процент развития',
     )
-    start_date = models.DateField(
+    add_date = models.DateField(
         auto_now_add=True,
         db_index=True,
         verbose_name='Дата добавления сотрудника в план развития',
-    )
-    end_date = models.DateField(
-        auto_now_add=True,
-        db_index=True,
-        verbose_name='Дата завершения плана развития сотрудника',
-    )
-    development_assesment = models.IntegerField(
-        default=0,
-        verbose_name='Оценка развития сотрудника',
     )
 
     class Meta:
@@ -208,14 +199,10 @@ class EmployeeEngagement(models.Model):
     performance_score = models.IntegerField(
         verbose_name='Уровень вовлеченности сотрудника',
     )
-    start_date = models.DateField(
+    add_date = models.DateField(
         auto_now_add=True,
         db_index=True,
-        verbose_name='Начальная дата',
-    )
-    end_date = models.DateField(
-        db_index=True,
-        verbose_name='Конечная дата',
+        verbose_name='Дата вовлечения сотрудника',
     )
 
     class Meta:
@@ -234,7 +221,7 @@ class KeyPeople(models.Model):
 
     key_people_name = models.CharField(
         max_length=255,
-        verbose_name='Имя key people',
+        verbose_name='Название key people',
     )
     employee_count = models.IntegerField(
         default=0,
@@ -265,14 +252,10 @@ class EmployeeKeyPeople(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Key people',
     )
-    start_date = models.DateField(
+    add_date = models.DateField(
         auto_now_add=True,
         db_index=True,
-        verbose_name='Начальная дата',
-    )
-    end_date = models.DateField(
-        db_index=True,
-        verbose_name='Конечная дата',
+        verbose_name='Дата добавления ключевого сотрудника',
     )
 
     class Meta:
@@ -295,7 +278,7 @@ class TrainingApplication(models.Model):
     )
     employee_count = models.IntegerField(
         default=0,
-        verbose_name='Количество сотрудников на обучение',
+        verbose_name='Количество сотрудников на обучении',
     )
 
     class Meta:
@@ -320,7 +303,12 @@ class EmployeeTrainingApplication(models.Model):
     training_application = models.ForeignKey(
         TrainingApplication,
         on_delete=models.CASCADE,
-        verbose_name='Название обучения',
+        verbose_name='Заявка на обучение',
+    )
+    add_date = models.DateField(
+        auto_now_add=True,
+        db_index=True,
+        verbose_name='Дата добавления заявки на обучение',
     )
 
     class Meta:
@@ -335,7 +323,7 @@ class EmployeeTrainingApplication(models.Model):
     
 
 class BusFactor(models.Model):
-    """ Модель -Bus Фактор-. """
+    """ # Модель -Bus Фактор-. """
 
     bus_factor_name = models.CharField(
         max_length=255,
@@ -343,7 +331,7 @@ class BusFactor(models.Model):
     )
     employee_count = models.IntegerField(
         default=0,
-        verbose_name='Количество сотрудников Bus фактор',
+        verbose_name='Количество сотрудников с этим Bus фактором',
     )
 
     class Meta:
@@ -370,14 +358,10 @@ class EmployeeBusFactor(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Bus фактор',
     )
-    start_date = models.DateField(
+    add_date = models.DateField(
         auto_now_add=True,
         db_index=True,
-        verbose_name='Начальная дата',
-    )
-    end_date = models.DateField(
-        db_index=True,
-        verbose_name='Конечная дата',
+        verbose_name='Дата добавления bud-фактора сотрудника',
     )
 
     class Meta:
@@ -392,16 +376,16 @@ class EmployeeBusFactor(models.Model):
     
 
 class Grade(models.Model):
-    """ Модель -Grade-. """
+    """ Модель -Класс-. """
 
     grade_name = models.CharField(
         max_length=255,
-        verbose_name='Название грейда',
+        verbose_name='Название класса',
     )
 
     class Meta:
-        verbose_name = 'Грейд'
-        verbose_name_plural = 'Грейды'
+        verbose_name = 'Класс'
+        verbose_name_plural = 'Классы'
         ordering = (
             'grade_name',
         )
@@ -421,18 +405,75 @@ class EmployeeGrade(models.Model):
     grade = models.ForeignKey(
         Grade,
         on_delete=models.CASCADE,
-        verbose_name='Грейд',
+        verbose_name='Класс',
     )
 
     class Meta:
-        verbose_name = 'Грейд сотрудника'
-        verbose_name_plural = 'Грейды сотрудников'
+        verbose_name = 'Класс сотрудника'
+        verbose_name_plural = 'Классы сотрудников'
         ordering = (
             'grade',
         )
 
     def __str__(self):
         return f"{self.employee} - {self.grade}"
+
+
+class KeySkill(models.Model):
+    """ Модель -Ключевой навык-. """
+
+    skill_name = models.CharField(
+        max_length=255,
+        verbose_name='Название ключевого навыка',
+    )
+    employee_count = models.IntegerField(
+        default=0,
+        verbose_name='Количество сотрудников с данным ключевым навыком',
+    )
+
+    class Meta:
+        verbose_name = 'Ключевой навык'
+        verbose_name_plural = 'Ключевые навыки'
+        ordering = (
+            'skill_name',
+        )
+
+    def __str__(self):
+        return self.skill_name
+
+
+class EmployeeKeySkill(models.Model):
+    """ Модель -Ключевой навык сотрудника-. """
+
+    employee = models.ForeignKey(
+        Employee,
+        on_delete=models.CASCADE,
+        related_name='key_skills',
+    )
+    key_skill = models.ForeignKey(
+        KeySkill,
+        on_delete=models.CASCADE,
+        verbose_name='Ключевой навык',
+    )
+    skill_level = models.CharField(
+        max_length=255,
+        verbose_name='Уровень ключевого навыка сотрудника',
+    )
+    add_date = models.DateField(
+        auto_now_add=True,
+        db_index=True,
+        verbose_name='Дата добавления ключевого навыка сотрудника',
+    )
+
+    class Meta:
+        verbose_name = 'Ключевой навык сотрудника'
+        verbose_name_plural = 'Ключевые навыки сотрудников'
+        ordering = (
+            'key_skill',
+        )
+
+    def __str__(self):
+        return f"{self.employee} - {self.key_skill} ({self.skill_level})"
 
 
 class Team(models.Model):
@@ -486,17 +527,17 @@ class EmployeeTeam(models.Model):
         return f"{self.employee} - {self.team}"
 
 
-class Specialization(models.Model):
-    """ Модель -Специальность-. """
+class Position(models.Model):
+    """ Модель -Должность-. """
 
-    specialization_name = models.CharField(
+    position_name = models.CharField(
         max_length=255,
         unique=True,
-        verbose_name='Название специальности',
+        verbose_name='Название должности',
     )
     grade_count = models.IntegerField(
         default=0,
-        verbose_name='Количество грейдов, связанных со специальностью'
+        verbose_name='Количество грейдов, связанных с должностью'
     )
 
     class Meta:
@@ -510,16 +551,16 @@ class Specialization(models.Model):
         return self.position_name
 
 
-class EmployeeSpecialization(models.Model):
-    """ Модель -Специальность сотрудника-. """
+class EmployeePosition(models.Model):
+    """ Модель -Должность сотрудника-. """
 
     employee = models.ForeignKey(
         Employee,
         on_delete=models.CASCADE,
-        related_name='specializations',
+        related_name='positions',
     )
-    specialization = models.ForeignKey(
-        Specialization,
+    position = models.ForeignKey(
+        Position,
         on_delete=models.CASCADE,
         verbose_name='Должность',
     )
@@ -542,10 +583,6 @@ class Competency(models.Model):
         max_length=255,
         verbose_name='Название компетенции',
     )
-    competency_domen = models.CharField(
-        max_length=255,
-        verbose_name='Домен компетенции',
-    )
     employee_count = models.IntegerField(
         default=0,
         verbose_name='Количество сотрудников с данной компетенцией'
@@ -562,10 +599,10 @@ class Competency(models.Model):
         return self.competency_name
 
 
-class CompetencySpecialization(models.Model):
-    """ Модель -компетенция к специальности-. """
+class PositionCompetency(models.Model):
+    """ Модель -Должность к компетенции-. """
 
-    specialization = models.ForeignKey(
+    position = models.ForeignKey(
         Position,
         on_delete=models.CASCADE,
         related_name='competencies',
@@ -592,21 +629,21 @@ class CompetencySpecialization(models.Model):
         return f"{self.position} - {self.competency}"
 
 
-class TeamSpecialization(models.Model):
+class TeamPosition(models.Model):
     """ Модель -Должность для команды-. """
 
     team = models.ForeignKey(
         Team,
         on_delete=models.CASCADE,
     )
-    specialization = models.ForeignKey(
+    position = models.ForeignKey(
         Position,
         on_delete=models.CASCADE,
     )
 
     class Meta:
-        verbose_name = 'Специальность для команды'
-        verbose_name_plural = 'Специальности для команд'
+        verbose_name = 'Должность для команды'
+        verbose_name_plural = 'Должности для команд'
         ordering = (
             'team',
         )
@@ -628,14 +665,6 @@ class EmployeeCompetency(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Компетенция',
     )
-    planned_assessment = models.IntegerField(
-        default=0,
-        verbose_name='Плановая оценка',
-    )
-    actual_assessment = models.IntegerField(
-        default=0,
-        verbose_name='Фактическая оценка',
-    )
     competency_level = models.CharField(
         max_length=255,
         verbose_name='Уровень компетенции сотрудника',
@@ -652,12 +681,27 @@ class EmployeeCompetency(models.Model):
         return f"{self.employee} - {self.competency} ({self.competency_level})"
     
 
+class SkillTypeEnum(Enum):
+    HARD = 'hard'
+    SOFT = 'soft'
+
+    @classmethod
+    def choices(cls):
+        return [(key.value, key.name.capitalize()) for key in cls]
+
+
 class Skill(models.Model):
-    """ Модель -Навык-. """
+    """ Модель -Навык- с выбором типа навыка (hard или soft). """
 
     skill_name = models.CharField(
         max_length=255,
         verbose_name='Название навыка',
+    )
+    skill_type = models.CharField(
+        max_length=4,
+        choices=SkillTypeEnum.choices(),
+        default=SkillTypeEnum.HARD,
+        verbose_name='Тип навыка',
     )
     employee_count = models.IntegerField(
         default=0,
@@ -692,23 +736,6 @@ class EmployeeSkill(models.Model):
         default=0,
         verbose_name='Уровень навыка сотрудника',
     )
-    planned_assessment_skill = models.IntegerField(
-        default=0,
-        verbose_name='Плановая оценка навыка',
-    )
-    actual_assessment_skill = models.IntegerField(
-        default=0,
-        verbose_name='Фактическая оценка навыка',
-    )
-    start_date = models.DateField(
-        auto_now_add=True,
-        verbose_name='Начальная дата',
-    )
-    end_date = models.DateField(
-        db_index=True,
-        verbose_name='Конечная дата',
-    )
-
 
     class Meta:
         verbose_name = 'Навык сотрудника'
