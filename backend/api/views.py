@@ -22,13 +22,13 @@ from core.models import (
     ExpectedSkill, EmployeeExpectedSkill, CompetencyForExpectedSkill, Employee
 )
 from .serializers import (
-    EmployeeSerializer, DevelopmentPlanSerializer, IndividualDevelopmentPlanRequestSerializer,
-    IndividualDevelopmentPlanResponseSerializer, MetricRequestSerializer, 
-    SkillSerializer, SkillAverageRequestSerializer, SkillAverageResponseSerializer, TeamMetricsRequestSerializer
+    EmployeeSerializer, DevelopmentPlanSerializer,
+    IndividualDevelopmentPlanRequestSerializer,
+    IndividualDevelopmentPlanResponseSerializer,
+    MetricRequestSerializer,
+    TeamMetricsRequestSerializer
 )
-# from api.filters import (
-#     EmployeeFilter
-# )
+
 from rest_framework.response import Response
 from django.db.models import Avg
 
@@ -129,8 +129,6 @@ class MetricViewSet(viewsets.ViewSet):
                                 "performance": str(performance)
                             })
 
-                        
-                        
                 except model.DoesNotExist:
                     continue
 
@@ -150,6 +148,7 @@ class MetricViewSet(viewsets.ViewSet):
         start_date = datetime.strptime(f"{start_period['year']}-{start_period['month']}-09", "%Y-%B-%d").date()
         end_date = datetime.strptime(f"{end_period['year']}-{end_period['month']}-09", "%Y-%B-%d").date()
         return start_date, end_date
+
 
 class TeamCountEmployeeViewSet(viewsets.ViewSet):
     def create(self, request, team_slug):
@@ -205,6 +204,8 @@ class TeamCountEmployeeViewSet(viewsets.ViewSet):
         start_date = datetime.strptime(f"{start_period['year']}-{start_period['month']}-08", "%Y-%B-%d").date()
         end_date = datetime.strptime(f"{end_period['year']}-{end_period['month']}-08", "%Y-%B-%d").date()
         return start_date, end_date
+
+
 #################################
 class TeamMetricViewSet(viewsets.ViewSet):
     def create(self, request, team_slug, metric_type):
@@ -294,94 +295,107 @@ class TeamMetricViewSet(viewsets.ViewSet):
         return start_date, end_date
 #################################
 
-class SkillViewSet(viewsets.ModelViewSet):
-    """ . """
-    queryset = Skill.objects.all()
-    serializer_class = SkillSerializer
 
-    def list(self, request):
-        # Сериализация входящих данных
-        serializer = SkillAverageRequestSerializer(data=request.data)
+class SkillAssessmentViewSet(viewsets.ViewSet):
+    """
+    ViewSet для получения оценки навыков команды и индивидуальных навыков.
+    """
+
+    def create(self, request, *args, **kwargs):
+        # Получаем URL, чтобы понять какой тип оценки запрашивается
+        if 'team-skill-assessment' in request.path:
+            return self.team_skill_assessment(request)
+        elif 'individual-skill-assessment' in request.path:
+            return self.individual_skill_assessment(request)
+        else:
+            return Response({"detail": "Invalid URL"}, status=status.HTTP_404_NOT_FOUND)
+
+    def team_skill_assessment(self, request):
+        """
+        Получение оценки навыков команды.
+        """
+        # Десериализация тела запроса
+        serializer = SkillAssessmentRequestSerializer(data=request.data)
         if serializer.is_valid():
             employee_ids = serializer.validated_data['employeeIds']
-            skill_type = serializer.validated_data['skillType']
+            skill_domen = serializer.validated_data['skillDomen']
+            start_period = serializer.validated_data['startPeriod']
+            end_period = serializer.validated_data['endPeriod']
 
-            # Получаем навыки заданного типа (hard/soft) для указанных сотрудников
-            skills_data = EmployeeSkill.objects.filter(
-                employee__employee_id__in=employee_ids,
-                skill__skill_type=skill_type
-            ).values('skill__skill_name', 'skill_level')
+            # Логика для получения оценки навыков команды
+            skills_data = []
+            for skill in Skill.objects.filter(domen=skill_domen):
+                # Фильтруем данные по навыкам, сотрудникам и периодам
+                skill_assessments = EmployeeSkill.objects.filter(
+                    employee__in=employee_ids,
+                    skill=skill,
+                    period__month__gte=start_period['month'],
+                    period__year__gte=start_period['year'],
+                    period__month__lte=end_period['month'],
+                    period__year__lte=end_period['year']
+                )
 
-            # Формируем список с навыками и средними оценками
-            skills = [{"skillName": data['skill__skill_name'], "averageAssessment": data['skill_level']} for data in skills_data]
+                # Рассчитываем среднюю оценку по всем сотрудникам для конкретного навыка
+                avg_assessment = skill_assessments.aggregate(average=Avg('assesment'))['average']
+                if avg_assessment:
+                    skills_data.append({
+                        'skillId': skill.id,
+                        'skillName': skill.name,
+                        'assesment': avg_assessment
+                    })
 
-            response_serializer = SkillAverageResponseSerializer({"skills": skills})
-            return Response(response_serializer.data, status=status.HTTP_200_OK)
+            # Формирование ответа
+            response_data = [
+                {
+                    "period": start_period,  # Здесь можно использовать цикл для каждого месяца в периоде
+                    "skillsData": skills_data
+                }
+            ]
+            return Response({"data": response_data}, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        # В случае ошибки валидации возвращаем ошибку
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def create(self, request):
-        # Сериализация входящих данных
-        serializer = SkillAverageRequestSerializer(data=request.data)
+    def individual_skill_assessment(self, request):
+        """
+        Получение оценки навыков сотрудника.
+        """
+        # Десериализация тела запроса
+        serializer = SkillAssessmentRequestSerializer(data=request.data)
         if serializer.is_valid():
-            employee_ids = serializer.validated_data['employeeIds']
-            skill_type = serializer.validated_data['skillType']
+            employee_id = serializer.validated_data['employeeIds'][0]  # Ожидаем одного сотрудника
+            skill_domen = serializer.validated_data['skillDomen']
+            start_period = serializer.validated_data['startPeriod']
+            end_period = serializer.validated_data['endPeriod']
 
-            # Получаем навыки заданного типа (hard/soft) для указанных сотрудников
-            skills_data = EmployeeSkill.objects.filter(
-                employee__employee_id__in=employee_ids,
-                skill__skill_type=skill_type
-            ).values('skill__skill_name').annotate(avg_assessment=Avg('skill_level'))
+            # Логика для получения оценки навыков сотрудника
+            skills_data = []
+            for skill in Skill.objects.filter(domen=skill_domen):
+                # Фильтруем данные по навыкам и сотруднику
+                skill_assessments = EmployeeSkill.objects.filter(
+                    employee_id=employee_id,
+                    skill=skill,
+                    period__month__gte=start_period['month'],
+                    period__year__gte=start_period['year'],
+                    period__month__lte=end_period['month'],
+                    period__year__lte=end_period['year']
+                )
 
-            # Формируем список с навыками и средними оценками
-            skills = [{"skillName": data['skill__skill_name'], "averageAssessment": data['avg_assessment']} for data in skills_data]
+                # Рассчитываем среднюю оценку сотрудника для конкретного навыка
+                avg_assessment = skill_assessments.aggregate(average=Avg('assesment'))['average']
+                if avg_assessment:
+                    skills_data.append({
+                        'skillId': skill.id,
+                        'skillName': skill.name,
+                        'assesment': avg_assessment
+                    })
 
-            response_serializer = SkillAverageResponseSerializer({"skills": skills})
-            return Response(response_serializer.data, status=status.HTTP_200_OK)
-
-        # В случае ошибки валидации возвращаем ошибку
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class TeamSkillAssessmentViewSet(viewsets.ViewSet):
-
-    def create(self, request):
-        employee_ids = request.data.get('employeeIds', [])
-        skill_domen = request.data.get('skillDomen', '')
-
-        # Проверяем, что были переданы employeeIds и skillDomen
-        if not employee_ids or not skill_domen:
-            return Response(
-                {"error": "employeeIds and skillDomen are required"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Фильтруем навыки по домену (например, Hard/Soft)
-        skills = Skill.objects.filter(skill_type=skill_domen)
-
-        skills_data = []
-
-        # Проходим по каждому навыку и считаем средние значения плановых и фактических оценок
-        for skill in skills:
-            planned_avg = EmployeeSkill.objects.filter(
-                skill=skill,
-                employee__employee_id__in=employee_ids
-            ).aggregate(planned_avg=Avg('planned_assessment'))['planned_avg']
-
-            actual_avg = EmployeeSkill.objects.filter(
-                skill=skill,
-                employee__employee_id__in=employee_ids
-            ).aggregate(actual_avg=Avg('actual_assessment'))['actual_avg']
-
-            if planned_avg is not None and actual_avg is not None:
-                skills_data.append({
-                    'skillId': skill.id,
-                    'skillName': skill.skill_name,
-                    'plannedResult': round(planned_avg, 2),
-                    'actualResult': round(actual_avg, 2)
-                })
-
-        # Формируем ответ
-        response_data = {'data': skills_data}
-        return Response(response_data, status=status.HTTP_200_OK)
+            # Формирование ответа
+            response_data = [
+                {
+                    "period": start_period,  # Здесь можно использовать цикл для каждого месяца в периоде
+                    "skillsData": skills_data
+                }
+            ]
+            return Response({"data": response_data}, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
