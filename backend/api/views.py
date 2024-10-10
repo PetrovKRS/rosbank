@@ -25,13 +25,15 @@ from .serializers import (
     EmployeeSerializer, DevelopmentPlanSerializer,
     IndividualDevelopmentPlanRequestSerializer,
     IndividualDevelopmentPlanResponseSerializer,
-    MetricRequestSerializer,
-    TeamMetricsRequestSerializer
+    SkillAssessmentRequestSerializer,
+    TeamMetricsRequestSerializer, 
+    SkillDomenRequestSerializer, 
+    CompetencySerializer       
 )
 
 from rest_framework.response import Response
 from django.db.models import Avg
-
+from django.shortcuts import get_object_or_404
 from datetime import datetime
 from calendar import month_name
 
@@ -293,6 +295,81 @@ class TeamMetricViewSet(viewsets.ViewSet):
         start_date = datetime.strptime(f"{start_period['year']}-{start_period['month']}-09", "%Y-%B-%d").date()
         end_date = datetime.strptime(f"{end_period['year']}-{end_period['month']}-09", "%Y-%B-%d").date()
         return start_date, end_date
+
+
+class TeamIndividualCompetenciesViewSet(viewsets.ViewSet):
+    def create(self, request, team_slug, employee_id=None):
+        # Валидация данных запроса
+        request_serializer = SkillDomenRequestSerializer(data=request.data)
+
+        if request_serializer.is_valid():
+            # Получаем значение skill_domen из валидированных данных
+            skill_domen = request_serializer.validated_data['skillDomen']
+
+            # Получаем команду по slug
+            team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
+
+            # Если указан employee_id, находим конкретного сотрудника
+            if employee_id is not None:
+                employee = get_object_or_404(team.employee.all(), id=employee_id)
+                # Фильтруем компетенции сотрудника по указанному домену (hard/soft)
+                employee_competencies = EmployeeCompetency.objects.filter(
+                    employee=employee,
+                    competency__competency_type=skill_domen
+                )
+
+                # Если компетенций нет
+                if not employee_competencies.exists():
+                    return Response({"data": []}, status=status.HTTP_200_OK)
+
+                # Формируем ответ с расчетом средних значений для конкретного сотрудника
+                data = []
+                for emp_competency in employee_competencies:
+                    planned_result = emp_competency.planned_result  # Получаем плановую оценку
+                    actual_result = emp_competency.actual_result  # Получаем фактическую оценку
+
+                    data.append({
+                        "competencyId": emp_competency.competency.id,
+                        "skillDomen": skill_domen.capitalize(),
+                        "competencyName": emp_competency.competency.competency_name,
+                        "plannedResult": str(planned_result),  # Конвертируем в строку
+                        "actualResult": f"{actual_result:.1f}"  # Форматируем результат до одного знака после запятой
+                    })
+
+                # Возвращаем данные
+                return Response({"data": data}, status=status.HTTP_200_OK)
+
+            # Если employee_id не указан, получаем компетенции для всей команды
+            else:
+                team_competencies = EmployeeCompetency.objects.filter(
+                    employee__in=team.employee.all(),
+                    competency__competency_type=skill_domen
+                )
+
+                # Если компетенций нет
+                if not team_competencies.exists():
+                    return Response({"data": []}, status=status.HTTP_200_OK)
+
+                # Формируем ответ с расчетом средних значений для всей команды
+                data = []
+                for team_competency in team_competencies:
+                    planned_result = team_competency.planned_result  # Получаем плановую оценку
+                    actual_result = team_competency.actual_result  # Получаем фактическую оценку
+
+                    data.append({
+                        "competencyId": team_competency.competency.id,
+                        "skillDomen": skill_domen.capitalize(),
+                        "competencyName": team_competency.competency.competency_name,
+                        "plannedResult": str(planned_result),  # Конвертируем в строку
+                        "actualResult": f"{actual_result:.1f}"  # Форматируем результат до одного знака после запятой
+                    })
+
+                # Возвращаем данные
+                return Response({"data": data}, status=status.HTTP_200_OK)
+
+        # Если данные некорректны
+        return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 #################################
 
 
@@ -399,3 +476,9 @@ class SkillAssessmentViewSet(viewsets.ViewSet):
             return Response({"data": response_data}, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+ 
+ 
+        
+        
+# НАДО БУДЕТСДЕЛАТЬ ЧТОБЫ ВОЗВРАТ БЫЛ НЕ return Response({"data": response_data} А ЧЕРЕЗ СЕРИАЛИЗАТОР ВО ВСЕХ ВЬЮ 
