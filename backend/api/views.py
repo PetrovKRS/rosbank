@@ -25,11 +25,11 @@ from .serializers import (
     EmployeeSerializer,
     # DevelopmentPlanSerializer,
     IndividualDevelopmentPlanRequestSerializer,
-    IndividualDevelopmentPlanResponseSerializer,
+    TeamMetricsResponseSerializer,
     SkillAssessmentRequestSerializer,
     TeamMetricsRequestSerializer, 
     SkillDomenRequestSerializer, 
-    CompetencySerializer,
+    MetricResponseSerializer,
     CompetencyLevelRequestSerializer   
 )
 
@@ -44,6 +44,7 @@ from calendar import month_name
 #     serializer_class = EmployeeSerializer
 #     # filter_backends = (filters.DjangoFilterBackend,)
 #     # filterset_class = EmployeeFilter
+
 
 class EmployeesViewSet(viewsets.ModelViewSet): 
     serializer_class = EmployeeSerializer
@@ -71,82 +72,71 @@ class EmployeesViewSet(viewsets.ModelViewSet):
 
 
 class MetricViewSet(viewsets.ViewSet): 
-    # Возможно это проблема с тем что доступ к сотруднику имеет любой менеджер!!!!!! Возможно есть лишнии поля
-    
     def create(self, request, metric_type):
-        request_serializer = IndividualDevelopmentPlanRequestSerializer(data=request.data)
+        serializer = IndividualDevelopmentPlanRequestSerializer(data=request.data)
 
-        if request_serializer.is_valid():
-            employee_ids = request_serializer.validated_data['employeeIds']
-            start_period = request_serializer.validated_data['startPeriod']
-            end_period = request_serializer.validated_data['endPeriod']
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-            # Преобразование формата даты
-            start_date, end_date = self.convert_to_date(start_period, end_period)
+        employee_ids = serializer.validated_data['employeeIds']
+        start_date, end_date = self.convert_to_date(
+            serializer.validated_data['startPeriod'], 
+            serializer.validated_data['endPeriod']
+        )
 
-            dashboard = []
-            total_performance = 0
-            employee_count = 0
+        # Определяем модель по метрике
+        model = {
+            'development_plan': EmployeeDevelopmentPlan,
+            'involvement': EmployeeEngagement
+        }.get(metric_type)
 
-            # Определяем модель в зависимости от типа метрики
-            model = None
-            if metric_type == 'development_plan':
-                model = EmployeeDevelopmentPlan
-            elif metric_type == 'involvement':
-                model = EmployeeEngagement
-            # elif metric_type == 'employees':
-            #     return self.get_employee_data(employee_ids, start_date, end_date)  # Обрабатываем данные по сотрудникам
-            else:
-                return Response(
-                    {"error": "Invalid metric type."},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+        if not model:
+            return Response({"error": "Invalid metric type."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Обрабатываем данные по каждому сотруднику
-            for employee_id in employee_ids:
-                try:
-                    # Получаем данные только за указанный период
-                    employee_metrics = model.objects.filter(
-                        employee__employee_id=employee_id,
-                        add_date__range=[start_date, end_date]  # Фильтрация по промежутку времени
-                    )
-                    
-                    if employee_metrics.exists():
-                        # Группируем метрики по месяцам
-                        metrics_by_month = {}
-                        
-                        for metric in employee_metrics:
-                            month_year_key = (metric.add_date.year, metric.add_date.month)
-                            performance = metric.performance_score
+        dashboard, last_performance = self.get_employee_metrics(employee_ids, model, start_date, end_date)
 
-                            if month_year_key not in metrics_by_month:
-                                metrics_by_month[month_year_key] = 0
-                            metrics_by_month[month_year_key] += performance
+        response_data = {
+            "dashboard": [],
+            "completionForToday": last_performance
+        }
 
-                        # Формируем данные для ответа
-                        for (year, month), performance in metrics_by_month.items():
-                            dashboard.append({
-                                "period": {
-                                    "month": month_name[month],  # Импортируйте month_name из calendar
-                                    "year": year
-                                },
-                                "performance": str(performance)
-                            })
+        for entry in dashboard:
+            metric_serializer = MetricResponseSerializer(data=entry)
+            if metric_serializer.is_valid():
+                response_data["dashboard"].append(metric_serializer.data)
 
-                except model.DoesNotExist:
-                    continue
+        return Response(response_data, status=status.HTTP_200_OK)
 
-            # Получаем последнее значение производительности за указанный период
-            completion_for_today = dashboard[-1]['performance'] if dashboard else "0.00"
+    def get_employee_metrics(self, employee_ids, model, start_date, end_date):
+        dashboard = []
 
-            response_data = {
-                "dashboard": dashboard,
-                "completionForToday": completion_for_today
-            }
+        for employee_id in employee_ids:
+            employee_metrics = model.objects.filter(
+                employee__employee_id=employee_id,
+                add_date__range=[start_date, end_date]
+            )
 
-            return Response(response_data, status=status.HTTP_200_OK)
+            if not employee_metrics.exists():
+                continue
 
-        return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # Группируем метрики по месяцам
+            metrics_by_month = self.group_metrics_by_month(employee_metrics)
+
+            for (year, month), performance in metrics_by_month.items():
+                dashboard.append({
+                    "period": {"month": month_name[month], "year": year},
+                    "performance": str(performance)
+                })
+
+        last_performance = dashboard[-1]['performance'] if dashboard else "0.00"
+        return dashboard, last_performance
+
+    def group_metrics_by_month(self, employee_metrics):
+        metrics_by_month = {}
+        for metric in employee_metrics:
+            key = (metric.add_date.year, metric.add_date.month)
+            metrics_by_month[key] = metrics_by_month.get(key, 0) + metric.performance_score
+        return metrics_by_month
 
     def convert_to_date(self, start_period, end_period):
         start_date = datetime.strptime(f"{start_period['year']}-{start_period['month']}-09", "%Y-%B-%d").date()
@@ -205,172 +195,109 @@ class TeamCountEmployeeViewSet(viewsets.ViewSet):
             return Response({"error": "Team not found."}, status=status.HTTP_404_NOT_FOUND)
 
     def convert_to_date(self, start_period, end_period):
-        start_date = datetime.strptime(f"{start_period['year']}-{start_period['month']}-08", "%Y-%B-%d").date()
-        end_date = datetime.strptime(f"{end_period['year']}-{end_period['month']}-08", "%Y-%B-%d").date()
+        start_date = datetime.strptime(f"{start_period['year']}-{start_period['month']}-09", "%Y-%B-%d").date()
+        end_date = datetime.strptime(f"{end_period['year']}-{end_period['month']}-09", "%Y-%B-%d").date()
         return start_date, end_date
 
 
 #################################
 class TeamMetricViewSet(viewsets.ViewSet):
     def create(self, request, team_slug, metric_type):
-        # Возможно это проблема с тем что доступ к команде имеет любой менеджер!!!!!! Возможно есть лишнии поля
-        
-        
         request_serializer = TeamMetricsRequestSerializer(data=request.data)
+        if not request_serializer.is_valid():
+            return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        if request_serializer.is_valid():
-            start_period = request_serializer.validated_data['startPeriod']
-            end_period = request_serializer.validated_data['endPeriod']
+        start_date, end_date = self.convert_to_date(
+            request_serializer.validated_data['startPeriod'],
+            request_serializer.validated_data['endPeriod']
+        )
 
-            # Преобразование дат
-            start_date, end_date = self.convert_to_date(start_period, end_period)
+        try:
+            employees = EmployeeTeam.objects.get(team__slug=team_slug).employee.all()
+        except EmployeeTeam.DoesNotExist:
+            return Response({"error": "Team not found."}, status=status.HTTP_404_NOT_FOUND)
 
-            # Получаем команду по слагу
-            try:
-                team = EmployeeTeam.objects.get(team__slug=team_slug)
-                employees = team.employee.all()  # Все сотрудники в команде
-            except EmployeeTeam.DoesNotExist:
-                return Response({"error": "Team not found."}, status=status.HTTP_404_NOT_FOUND)
+        model = self.get_metric_model(metric_type)
+        if model is None:
+            return Response({"error": "Invalid metric type."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Инициализация переменных для метрик
-            dashboard = []
-            total_performance = 0
-            employee_count = employees.count()
+        metrics_by_month = {}
+        for employee in employees:
+            for metric in model.objects.filter(employee=employee, add_date__range=[start_date, end_date]):
+                key = (metric.add_date.year, metric.add_date.month)
+                metrics_by_month[key] = metrics_by_month.get(key, 0) + metric.performance_score
 
-            # Группировка метрик по месяцам
-            metrics_by_month = {}
+        dashboard = [
+            {"period": {"month": month_name[month], "year": year}, "performance": str(performance / len(employees))}
+            for (year, month), performance in metrics_by_month.items()
+        ]
 
-            # Определяем, какие метрики использовать (вовлеченность или план развития)
-            if metric_type == 'development_plan':
-                model = EmployeeDevelopmentPlan
-            elif metric_type == 'involvement':
-                model = EmployeeEngagement
+        completion_for_today = dashboard[-1]['performance'] if dashboard else "0.00"
 
-            else:
-                return Response({"error": "Invalid metric type."}, status=status.HTTP_400_BAD_REQUEST)
+        # Формируем ответ через сериализатор
+        response_data = {
+            "dashboard": [],
+            "completionForToday": completion_for_today
+        }
 
-            # Проходим по сотрудникам и собираем метрики
-            for employee in employees:
-                employee_metrics = model.objects.filter(
-                    employee=employee,
-                    add_date__range=[start_date, end_date]
-                )
+        for entry in dashboard:
+            metric_serializer = MetricResponseSerializer(data=entry)
+            if metric_serializer.is_valid():
+                response_data["dashboard"].append(metric_serializer.data)
 
-                if employee_metrics.exists():
-                    for metric in employee_metrics:
-                        month_year_key = (metric.add_date.year, metric.add_date.month)
-                        performance_score = metric.performance_score
-
-                        # Суммируем производительность
-                        total_performance += performance_score
-
-                        # Группируем метрики по месяцам
-                        if month_year_key not in metrics_by_month:
-                            metrics_by_month[month_year_key] = 0
-                        metrics_by_month[month_year_key] += performance_score
-
-            # Подсчет средней производительности
-            # Формирование dashboard
-            for (year, month), performance in metrics_by_month.items():
-                dashboard.append({
-                    "period": {
-                        "month": month_name[month],
-                        "year": year
-                    },
-                    "performance": str(performance / employee_count)  # Усредняем по количеству сотрудников
-                })
-
-            # Завершающая производительность
-            completion_for_today = dashboard[-1]['performance'] if dashboard else "0.00"
-
-            response_data = {
-                "dashboard": dashboard,
-                "completionForToday": completion_for_today
-            }
-
-            return Response(response_data, status=status.HTTP_200_OK)
-
-        return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(response_data, status=status.HTTP_200_OK)
 
     def convert_to_date(self, start_period, end_period):
-        # Преобразование даты в формат
-        start_date = datetime.strptime(f"{start_period['year']}-{start_period['month']}-09", "%Y-%B-%d").date()
-        end_date = datetime.strptime(f"{end_period['year']}-{end_period['month']}-09", "%Y-%B-%d").date()
-        return start_date, end_date
+        return (datetime.strptime(f"{start_period['year']}-{start_period['month']}-09", "%Y-%B-%d").date(),
+                datetime.strptime(f"{end_period['year']}-{end_period['month']}-09", "%Y-%B-%d").date())
+
+    def get_metric_model(self, metric_type):
+        return {
+            'development_plan': EmployeeDevelopmentPlan,
+            'involvement': EmployeeEngagement
+        }.get(metric_type)
 
 
 class TeamIndividualCompetenciesViewSet(viewsets.ViewSet):
     def create(self, request, team_slug, employee_id=None):
-        # Валидация данных запроса
         request_serializer = SkillDomenRequestSerializer(data=request.data)
 
         if request_serializer.is_valid():
-            # Получаем значение skill_domen из валидированных данных
             skill_domen = request_serializer.validated_data['skillDomen']
-
-            # Получаем команду по slug
             team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
 
-            # Если указан employee_id, находим конкретного сотрудника
-            if employee_id is not None:
-                employee = get_object_or_404(team.employee.all(), id=employee_id)
-                # Фильтруем компетенции сотрудника по указанному домену (hard/soft)
-                employee_competencies = EmployeeCompetency.objects.filter(
-                    employee=employee,
-                    competency__competency_type=skill_domen
-                )
+            competencies = self.get_competencies(team, employee_id, skill_domen)
+            data = self.prepare_competency_data(competencies, skill_domen)
 
-                # Если компетенций нет
-                if not employee_competencies.exists():
-                    return Response({"data": []}, status=status.HTTP_200_OK)
+            # Возвращаем данные в формате {"data": data}
+            return Response({"data": data}, status=status.HTTP_200_OK)
 
-                # Формируем ответ с расчетом средних значений для конкретного сотрудника
-                data = []
-                for emp_competency in employee_competencies:
-                    planned_result = emp_competency.planned_result  # Получаем плановую оценку
-                    actual_result = emp_competency.actual_result  # Получаем фактическую оценку
-
-                    data.append({
-                        "competencyId": emp_competency.competency.id,
-                        "skillDomen": skill_domen.capitalize(),
-                        "competencyName": emp_competency.competency.competency_name,
-                        "plannedResult": str(planned_result),  # Конвертируем в строку
-                        "actualResult": f"{actual_result:.1f}"  # Форматируем результат до одного знака после запятой
-                    })
-
-                # Возвращаем данные
-                return Response({"data": data}, status=status.HTTP_200_OK)
-
-            # Если employee_id не указан, получаем компетенции для всей команды
-            else:
-                team_competencies = EmployeeCompetency.objects.filter(
-                    employee__in=team.employee.all(),
-                    competency__competency_type=skill_domen
-                )
-
-                # Если компетенций нет
-                if not team_competencies.exists():
-                    return Response({"data": []}, status=status.HTTP_200_OK)
-
-                # Формируем ответ с расчетом средних значений для всей команды
-                data = []
-                for team_competency in team_competencies:
-                    planned_result = team_competency.planned_result  # Получаем плановую оценку
-                    actual_result = team_competency.actual_result  # Получаем фактическую оценку
-
-                    data.append({
-                        "competencyId": team_competency.competency.id,
-                        "skillDomen": skill_domen.capitalize(),
-                        "competencyName": team_competency.competency.competency_name,
-                        "plannedResult": str(planned_result),  # Конвертируем в строку
-                        "actualResult": f"{actual_result:.1f}"  # Форматируем результат до одного знака после запятой
-                    })
-
-                # Возвращаем данные
-                return Response({"data": data}, status=status.HTTP_200_OK)
-
-        # Если данные некорректны
         return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_competencies(self, team, employee_id, skill_domen):
+        if employee_id is not None:
+            employee = get_object_or_404(team.employee.all(), id=employee_id)
+            return EmployeeCompetency.objects.filter(
+                employee=employee,
+                competency__competency_type=skill_domen
+            )
+        else:
+            return EmployeeCompetency.objects.filter(
+                employee__in=team.employee.all(),
+                competency__competency_type=skill_domen
+            )
+
+    def prepare_competency_data(self, competencies, skill_domen):
+        data = []
+        for competency in competencies:
+            data.append({
+                "competencyId": competency.competency.id,
+                "skillDomen": skill_domen.capitalize(),
+                "competencyName": competency.competency.competency_name,
+                "plannedResult": str(competency.planned_result),
+                "actualResult": f"{competency.actual_result:.1f}"
+            })
+        return data
 
 
 class CompetencyLevelViewSet(viewsets.ViewSet):
@@ -381,59 +308,54 @@ class CompetencyLevelViewSet(viewsets.ViewSet):
     def create(self, request, team_slug, employee_id=None):
         # Валидация данных запроса
         request_serializer = CompetencyLevelRequestSerializer(data=request.data)
+        if not request_serializer.is_valid():
+            return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        if request_serializer.is_valid():
-            # Получаем данные из запроса
+        # Получаем данные из запроса
+        competency_id = request_serializer.validated_data['competencyId']
+        team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
 
-            competency_id = request_serializer.validated_data['competencyId']
+        # Получаем сотрудников команды
+        employees = self.get_employees(team, employee_id)
 
-            # Получаем команду по slug
-            team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
+        # Фильтруем компетенции сотрудников
+        employee_competencies = EmployeeCompetency.objects.filter(
+            employee__in=employees,
+            competency__id=competency_id,
+        )
 
-            # Если employee_id передан через URL — получаем конкретного сотрудника
-            if employee_id:
-                employees = team.employee.filter(id=employee_id)
-            else:
-                # Если employee_id не передан, берем всех сотрудников команды
-                employees = team.employee.all()
+        # Если компетенций нет
+        if not employee_competencies.exists():
+            return Response({"data": []}, status=status.HTTP_200_OK)
 
-            # Фильтруем компетенции сотрудников по competency_id и skill_domen
-            employee_competencies = EmployeeCompetency.objects.filter(
-                employee__in=employees,
-                competency__id=competency_id,
+        # Формируем данные для ответа
+        data = self.prepare_competency_data(employee_competencies)
+        return Response({"data": data}, status=status.HTTP_200_OK)
 
-            )
-            print(employee_competencies)
-            # Если компетенций нет
-            if not employee_competencies.exists():
-                return Response({"data": []}, status=status.HTTP_200_OK)
+    def get_employees(self, team, employee_id):
+        """Получаем сотрудников команды, фильтруя по employee_id, если передан."""
+        return team.employee.filter(id=employee_id) if employee_id else team.employee.all()
 
-            # Формируем данные для ответа
-            data = []
-            for emp_competency in employee_competencies:
-                competency_level = emp_competency.competency_level
-                skill_domen = emp_competency.competency.competency_type  # Получаем домен компетенции
-                color = self.get_color_based_on_assesment(competency_level)
+    def prepare_competency_data(self, employee_competencies):
+        """Подготавливаем данные для ответа."""
+        data = []
+        for emp_competency in employee_competencies:
+            data.append({
+                "employeeId": emp_competency.employee.id,
+                "skillDomen": emp_competency.competency.competency_type.capitalize(),
+                "assessment": str(emp_competency.competency_level),
+                "color": self.get_color_based_on_assessment(emp_competency.competency_level)
+            })
+        return data
 
-                data.append({
-                    "employeeId": emp_competency.employee.id,
-                    "skillDomen": skill_domen.capitalize(),  # Используем домен компетенции из объекта
-                    "assesment": f"{competency_level}",
-                    "color": color
-                })
-
-            return Response({"data": data}, status=status.HTTP_200_OK)
-
-        # Если данные некорректны
-        return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def get_color_based_on_assesment(self, competency_level):
+    def get_color_based_on_assessment(self, competency_level):
         """
         Метод для определения цвета в зависимости от уровня компетенции.
         """
-        if int(competency_level) > 60:
+        level = int(competency_level)
+        if level > 80:
             return "green"
-        elif int(competency_level) >= 60:
+        elif level >= 60:
             return "yellow"
 #################################
 

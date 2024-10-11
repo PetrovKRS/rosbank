@@ -161,9 +161,6 @@ class IndividualDevelopmentPlanResponseSerializer(serializers.Serializer):
 
 
 class TeamMetricsRequestSerializer(serializers.Serializer):
-    employeeIds = serializers.ListField(
-        child=serializers.CharField()
-    )
     startPeriod = serializers.DictField(
         child=serializers.CharField()
     )
@@ -211,3 +208,14 @@ class CompetencySerializer(serializers.Serializer):
 class CompetencyLevelRequestSerializer(serializers.Serializer):
     competencyId = serializers.IntegerField()
     
+
+class MetricResponseSerializer(serializers.Serializer):
+    period = serializers.DictField()
+    performance = serializers.CharField()
+    
+    
+class TeamMetricsResponseSerializer(serializers.Serializer):
+    period = serializers.DictField(child=serializers.CharField())
+    numberOfEmployee = serializers.CharField()
+    numberOfBusFactor = serializers.CharField()
+    numberOfKeyPeople = serializers.CharField()
