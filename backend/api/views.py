@@ -28,7 +28,8 @@ from .serializers import (
     SkillAssessmentRequestSerializer,
     TeamMetricsRequestSerializer, 
     SkillDomenRequestSerializer, 
-    CompetencySerializer       
+    CompetencySerializer,
+    CompetencyLevelRequestSerializer   
 )
 
 from rest_framework.response import Response
@@ -370,6 +371,69 @@ class TeamIndividualCompetenciesViewSet(viewsets.ViewSet):
         # Если данные некорректны
         return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+class CompetencyLevelViewSet(viewsets.ViewSet):
+    """
+    ViewSet для получения уровня компетенций сотрудников.
+    """
+
+    def create(self, request, team_slug, employee_id=None):
+        # Валидация данных запроса
+        request_serializer = CompetencyLevelRequestSerializer(data=request.data)
+
+        if request_serializer.is_valid():
+            # Получаем данные из запроса
+
+            competency_id = request_serializer.validated_data['competencyId']
+
+            # Получаем команду по slug
+            team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
+
+            # Если employee_id передан через URL — получаем конкретного сотрудника
+            if employee_id:
+                employees = team.employee.filter(id=employee_id)
+            else:
+                # Если employee_id не передан, берем всех сотрудников команды
+                employees = team.employee.all()
+
+            # Фильтруем компетенции сотрудников по competency_id и skill_domen
+            employee_competencies = EmployeeCompetency.objects.filter(
+                employee__in=employees,
+                competency__id=competency_id,
+
+            )
+            print(employee_competencies)
+            # Если компетенций нет
+            if not employee_competencies.exists():
+                return Response({"data": []}, status=status.HTTP_200_OK)
+
+            # Формируем данные для ответа
+            data = []
+            for emp_competency in employee_competencies:
+                competency_level = emp_competency.competency_level
+                skill_domen = emp_competency.competency.competency_type  # Получаем домен компетенции
+                color = self.get_color_based_on_assesment(competency_level)
+
+                data.append({
+                    "employeeId": emp_competency.employee.id,
+                    "skillDomen": skill_domen.capitalize(),  # Используем домен компетенции из объекта
+                    "assesment": f"{competency_level}",
+                    "color": color
+                })
+
+            return Response({"data": data}, status=status.HTTP_200_OK)
+
+        # Если данные некорректны
+        return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_color_based_on_assesment(self, competency_level):
+        """
+        Метод для определения цвета в зависимости от уровня компетенции.
+        """
+        if int(competency_level) > 60:
+            return "green"
+        elif int(competency_level) >= 60:
+            return "yellow"
 #################################
 
 

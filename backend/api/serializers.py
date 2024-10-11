@@ -207,3 +207,7 @@ class CompetencySerializer(serializers.Serializer):
     plannedResult = serializers.FloatField()
     actualResult = serializers.FloatField()
     
+
+class CompetencyLevelRequestSerializer(serializers.Serializer):
+    competencyId = serializers.IntegerField()
+    

@@ -3,7 +3,7 @@ from rest_framework import routers
 
 from api.views import (
     DevelopmentPlanViewSet, MetricViewSet, EmployeesViewSet,
-    TeamMetricViewSet, TeamCountEmployeeViewSet, SkillAssessmentViewSet, TeamIndividualCompetenciesViewSet, 
+    TeamMetricViewSet, TeamCountEmployeeViewSet, SkillAssessmentViewSet, TeamIndividualCompetenciesViewSet, CompetencyLevelViewSet
 )
 
 from .views import DevelopmentPlan
@@ -25,7 +25,11 @@ router_v1.register(r'teams/(?P<team_slug>[\w-]+)/(?P<metric_type>development_pla
 
 router_v1.register(r'teams/(?P<team_slug>[\w-]+)/individual-competencies(?:/(?P<employee_id>\d+))?', TeamIndividualCompetenciesViewSet, basename='individual_competencies')
 # Какого хуя я не могу сделать эндпоинт без (?P<employee_id>\d+)!!!
-
+router_v1.register(
+    r'teams/(?P<team_slug>[\w-]+)/competencies/level(?:/(?P<employee_id>\d+))?',
+    CompetencyLevelViewSet,  # Новый ViewSet для получения уровней компетенций
+    basename='competency_level'
+)
 
  
 
