@@ -3,7 +3,7 @@ name: Main workflow
 on:
   push:
     branches:
-      - VGD
+      - VGD_serv
 #      - develop_1
 
 jobs:
