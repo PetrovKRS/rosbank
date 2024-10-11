@@ -178,8 +178,8 @@ class EmployeeCompetencyAdmin(admin.ModelAdmin):
         'employee',
         'competency',
         'competency_level',
-        'planned_result',
-        'actual_result',
+        # 'planned_result',
+        # 'actual_result',
     )
 
     # Добавьте возможность фильтрации по полям (опционально)

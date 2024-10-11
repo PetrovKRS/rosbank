@@ -25,9 +25,9 @@ from .serializers import (
     EmployeeSerializer, DevelopmentPlanSerializer,
     IndividualDevelopmentPlanRequestSerializer,
     IndividualDevelopmentPlanResponseSerializer,
-    SkillAssessmentRequestSerializer,
+    # SkillAssessmentRequestSerializer,
     TeamMetricsRequestSerializer, 
-    SkillDomenRequestSerializer, 
+    # SkillDomenRequestSerializer,
     CompetencySerializer       
 )
 
