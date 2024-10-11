@@ -39,12 +39,6 @@ from django.shortcuts import get_object_or_404
 from datetime import datetime
 from calendar import month_name
 
-# class WorkersViewSet(viewsets.ModelViewSet):
-#     queryset = Employee.objects.all()
-#     serializer_class = EmployeeSerializer
-#     # filter_backends = (filters.DjangoFilterBackend,)
-#     # filterset_class = EmployeeFilter
-
 
 class EmployeesViewSet(viewsets.ModelViewSet): 
     serializer_class = EmployeeSerializer
@@ -65,14 +59,11 @@ class EmployeesViewSet(viewsets.ModelViewSet):
         )
 
 
-
-# class DevelopmentPlanViewSet(viewsets.ModelViewSet):
-#     queryset = DevelopmentPlan.objects.all()
-#     serializer_class = DevelopmentPlanSerializer
-
-
 class MetricViewSet(viewsets.ViewSet): 
     def create(self, request, metric_type):
+        if request.method != 'POST':
+            return Response({"error": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
         serializer = IndividualDevelopmentPlanRequestSerializer(data=request.data)
 
         if not serializer.is_valid():
@@ -146,6 +137,9 @@ class MetricViewSet(viewsets.ViewSet):
 
 class TeamCountEmployeeViewSet(viewsets.ViewSet):
     def create(self, request, team_slug):
+        if request.method != 'POST':
+            return Response({"error": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
         request_serializer = TeamMetricsRequestSerializer(data=request.data)
 
         if request_serializer.is_valid():
@@ -260,6 +254,9 @@ class TeamMetricViewSet(viewsets.ViewSet):
 
 class TeamIndividualCompetenciesViewSet(viewsets.ViewSet):
     def create(self, request, team_slug, employee_id=None):
+        if request.method != 'POST':
+            return Response({"error": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
         request_serializer = SkillDomenRequestSerializer(data=request.data)
 
         if request_serializer.is_valid():
@@ -306,6 +303,9 @@ class CompetencyLevelViewSet(viewsets.ViewSet):
     """
 
     def create(self, request, team_slug, employee_id=None):
+        if request.method != 'POST':
+            return Response({"error": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
         # Валидация данных запроса
         request_serializer = CompetencyLevelRequestSerializer(data=request.data)
         if not request_serializer.is_valid():
