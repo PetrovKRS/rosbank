@@ -6,6 +6,7 @@ class-registry==2.1.2
 cryptography==43.0.1
 defusedxml==0.8.0rc2
 Django==4.2
+django-extensions==3.2.3
 django-filter==24.3
 django-templated-mail==1.1.1
 djangorestframework==3.15.2
