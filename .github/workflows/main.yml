@@ -3,8 +3,8 @@ name: Main workflow
 on:
   push:
     branches:
-      - develop
-      - develop_1
+      - VGD
+#      - develop_1
 
 jobs:
   tests:

@@ -117,16 +117,16 @@ class EmployeeSerializer(serializers.ModelSerializer):
         return EmployeeTrainingApplication.objects.filter(employee=obj).exists()
 
 
-class DevelopmentPlanSerializer(serializers.ModelSerializer):
-    """ ."""
-
-    key_skill = serializers.CharField(source='key_skill.skill_name')
-
-    class Meta:
-        model = DevelopmentPlan
-        fields = (
-            'month', 'year', 'key_skill',
-        )
+# class DevelopmentPlanSerializer(serializers.ModelSerializer):
+#     """ ."""
+#
+#     key_skill = serializers.CharField(source='key_skill.skill_name')
+#
+#     class Meta:
+#         model = DevelopmentPlan
+#         fields = (
+#             'month', 'year', 'key_skill',
+#         )
 
 
 class MetricRequestSerializer(serializers.Serializer):

@@ -22,7 +22,8 @@ from core.models import (
     ExpectedSkill, EmployeeExpectedSkill, CompetencyForExpectedSkill, Employee
 )
 from .serializers import (
-    EmployeeSerializer, DevelopmentPlanSerializer,
+    EmployeeSerializer,
+    # DevelopmentPlanSerializer,
     IndividualDevelopmentPlanRequestSerializer,
     IndividualDevelopmentPlanResponseSerializer,
     SkillAssessmentRequestSerializer,
@@ -64,9 +65,9 @@ class EmployeesViewSet(viewsets.ModelViewSet):
 
 
 
-class DevelopmentPlanViewSet(viewsets.ModelViewSet):
-    queryset = DevelopmentPlan.objects.all()
-    serializer_class = DevelopmentPlanSerializer
+# class DevelopmentPlanViewSet(viewsets.ModelViewSet):
+#     queryset = DevelopmentPlan.objects.all()
+#     serializer_class = DevelopmentPlanSerializer
 
 
 class MetricViewSet(viewsets.ViewSet): 
