@@ -1,5 +1,4 @@
 # docker-compose.yml
-version: '3.3'
 
 volumes:
   pg_data:
@@ -9,7 +8,7 @@ volumes:
 services:
 
   db:
-    image: postgres:13
+    image: postgres:14
     env_file: .env
     volumes:
       - pg_data:/var/lib/postgresql/data
@@ -32,4 +31,5 @@ services:
       - drf-yasg:/var/html/static/
       - static:/var/html/static/
     depends_on:
+      - db
       - backend
