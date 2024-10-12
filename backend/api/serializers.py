@@ -12,6 +12,21 @@ from django.urls import reverse
 from rest_framework.validators import UniqueTogetherValidator
 
 
+# from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+# class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+#     @classmethod
+#     def get_token(cls, user):
+#         token = super().get_token(user)
+
+#         # Дополнительные данные, которые вы хотите включить в токен
+#         token['email'] = user.email  # Например, добавление email в токен
+
+#         return token
+
+
+
+
 class WorkersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Employee
@@ -72,7 +87,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
     #     source='employee_competencies', many=True
     # )
     position = serializers.CharField(
-        source='positions.first.position.position_name', allow_null=True
+        source='positions.position.position_name', allow_null=True
     )
     grade = serializers.CharField(
         source='grades.grade.grade_name',
@@ -140,9 +155,7 @@ class MetricRequestSerializer(serializers.Serializer):
 
 
 class IndividualDevelopmentPlanRequestSerializer(serializers.Serializer):
-    employeeIds = serializers.ListField(
-        child=serializers.CharField()
-    )
+
     startPeriod = serializers.DictField(
         child=serializers.CharField(),
         required=True

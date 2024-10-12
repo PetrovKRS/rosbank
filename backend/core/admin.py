@@ -39,7 +39,7 @@ class EmployeeDevelopmentPlanAdmin(admin.ModelAdmin):
         'add_date',
     )
     fields = (
-        'employee', 'development_plan', 'performance_score', 'add_date'
+        'employee', 'development_plan', 'performance_score',
     )
 
 

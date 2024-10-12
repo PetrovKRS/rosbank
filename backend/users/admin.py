@@ -2,7 +2,7 @@ from django.contrib import admin
 from core.models import (
     Employee, EmployeeKeyPeople, EmployeeBusFactor,
     EmployeeTrainingApplication, EmployeeGrade,
-    EmployeeSkill, EmployeeCompetency, EmployeePosition, EmployeeDevelopmentPlan
+    EmployeeSkill, EmployeeCompetency, EmployeePosition, EmployeeDevelopmentPlan, EmployeeEngagement
 )
 from users.models import ManagerTeam
 
@@ -45,8 +45,11 @@ class EmployeeDevelopmentPlanInline(admin.TabularInline):
     model = EmployeeDevelopmentPlan
     extra = 1
 
-
-@admin.register(Employee)
+class EmployeeEngagementInline(admin.TabularInline):
+    model = EmployeeEngagement
+    extra = 1
+    
+@admin.register(Employee)  # Регистрация модели через декоратор
 class UserAdmin(admin.ModelAdmin):
     inlines = [
         EmployeeKeyPeopleInline,
@@ -56,7 +59,8 @@ class UserAdmin(admin.ModelAdmin):
         EmployeeCompetencyInline,  # Инлайн для компетенций
         EmployeeGradeInline,
         EmployeePositionInline,
-        EmployeeDevelopmentPlanInline
+        EmployeeDevelopmentPlanInline,
+        EmployeeEngagementInline
     ]
 
     list_display = (
@@ -68,16 +72,16 @@ class UserAdmin(admin.ModelAdmin):
     list_filter = (
         'email', 'first_name', 'last_name'
     )
-    
+
+# Админка для ManagerTeam
+@admin.register(ManagerTeam)  # Регистрация модели через декоратор
 class ManagerTeamAdmin(admin.ModelAdmin):
     list_display = (
-        'pk', 'username', 'email', 'first_name', 'last_name'
+        'pk', 'email', 'first_name', 'last_name', 'is_staff', 'is_superuser'
     )
     search_fields = (
-        'username', 'email', 'first_name', 'last_name'
+        'email', 'first_name', 'last_name'
     )
     list_filter = (
-        'username', 'email', 'first_name', 'last_name'
+        'email', 'first_name', 'last_name', 'is_staff', 'is_superuser'
     )
-
-admin.site.register(ManagerTeam, ManagerTeamAdmin)
