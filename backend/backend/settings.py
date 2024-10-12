@@ -96,7 +96,7 @@ if DB_TYPE == 'postgres':
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': os.getenv('POSTGRES_DB', 'django'),
             'USER': os.getenv('POSTGRES_USER', 'django'),
-            'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
+            'PASSWORD': os.getenv('POSTGRES_PASSWORD', '123'),
             'HOST': os.getenv('DB_HOST', ''),
             'PORT': os.getenv('DB_PORT', 5432)
         }
