@@ -165,9 +165,6 @@ class Engagement(models.Model):
         max_length=255,
         verbose_name='Название вовлеченности',
     )
-    def __str__(self):
-        return self.engagement_name
-
     employee_count = models.IntegerField(
         default=0,
         verbose_name='Количество вовлеченных сотрудников',
@@ -179,6 +176,9 @@ class Engagement(models.Model):
         ordering = (
             'engagement_name',
         )
+
+    def __str__(self):
+        return self.engagement_name
 
 
 class EmployeeEngagement(models.Model):
@@ -227,8 +227,8 @@ class KeyPeople(models.Model):
     )
 
     class Meta:
-        verbose_name = 'Вовлеченность сотрудника'
-        verbose_name_plural = 'Вовлеченность сотрудников'
+        verbose_name = 'Key people'
+        verbose_name_plural = "Key people's"
         ordering = (
             'key_people_name',
         )
@@ -373,12 +373,28 @@ class EmployeeBusFactor(models.Model):
         return f"{self.employee} - {self.bus_factor}"
     
 
+class GradeTypeEnum(Enum):
+    JUNIOR = 'junior'
+    MIDDLE = 'middle'
+    SENIOR = 'senior'
+
+    @classmethod
+    def choices(cls):
+        return [(key.value, key.name.capitalize()) for key in cls]
+
+
 class Grade(models.Model):
     """ Модель -Класс-. """
 
     grade_name = models.CharField(
         max_length=255,
         verbose_name='Название класса',
+    )
+    grade_type = models.CharField(
+        max_length=100,
+        choices=GradeTypeEnum.choices(),
+        default=GradeTypeEnum.JUNIOR,
+        verbose_name='Тип класса',
     )
 
     class Meta:

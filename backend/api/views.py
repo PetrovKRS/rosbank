@@ -390,113 +390,66 @@ class CompetencyLevelViewSet(viewsets.ViewSet):
             raise ValueError(f"Invalid competency level: {competency_level}")
 #################################
 
-class SkillAssessmentViewSet(viewsets.ViewSet):
-    """
-    ViewSet для получения оценки навыков команды и индивидуальных навыков.
-    """
+class TeamSkillViewSet(viewsets.ViewSet):
 
-    def create(self, request, *args, **kwargs):
-        # Получаем URL, чтобы понять какой тип оценки запрашивается
-        if 'team-skill-assessment' in request.path:
-            return self.team_skill_assessment(request)
-        elif 'individual-skill-assessment' in request.path:
-            return self.individual_skill_assessment(request)
-        else:
-            return Response({"detail": "Invalid URL"}, status=status.HTTP_404_NOT_FOUND)
+    def get_average_skills(self, request):
+        skill_domen = request.data.get("skillDomen")
 
-    def team_skill_assessment(self, request):
-        """
-        Получение оценки навыков команды.
-        """
-        # Десериализация тела запроса
-        serializer = SkillAssessmentRequestSerializer(data=request.data)
-        if serializer.is_valid():
-            employee_ids = serializer.validated_data['employeeIds']
-            skill_domen = serializer.validated_data['skillDomen']
-            start_period = serializer.validated_data['startPeriod']
-            end_period = serializer.validated_data['endPeriod']
+        if not skill_domen:
+            return Response({"error": "skillDomen is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Логика для получения оценки навыков команды
-            skills_data = []
-            for skill in Skill.objects.filter(domen=skill_domen):
-                # Фильтруем данные по навыкам, сотрудникам и периодам
-                skill_assessments = EmployeeSkill.objects.filter(
-                    employee__in=employee_ids,
-                    skill=skill,
-                    period__month__gte=start_period['month'],
-                    period__year__gte=start_period['year'],
-                    period__month__lte=end_period['month'],
-                    period__year__lte=end_period['year']
-                )
+        skills = Skill.objects.filter(skill_type=skill_domen)
+        data = []
 
-                # Рассчитываем среднюю оценку по всем сотрудникам для конкретного навыка
-                avg_assessment = skill_assessments.aggregate(average=Avg('assesment'))['average']
-                if avg_assessment:
-                    skills_data.append({
-                        'skillId': skill.id,
-                        'skillName': skill.name,
-                        'assesment': avg_assessment
-                    })
+        for skill in skills:
+            planned_avg = EmployeeSkill.objects.filter(skill=skill).aggregate(Avg('skill_level'))[
+                              'skill_level__avg'] or 0
+            actual_avg = EmployeeAssesmentSkill.objects.filter(assesmentskill__skill=skill).aggregate(Avg('assesment'))[
+                             'assesment__avg'] or 0
 
-            # Формирование ответа
-            response_data = [
-                {
-                    "period": start_period,  # Здесь можно использовать цикл для каждого месяца в периоде
-                    "skillsData": skills_data
-                }
-            ]
-            return Response({"data": response_data}, status=status.HTTP_200_OK)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            data.append({
+                "skillDomen": skill_domen,
+                "skillId": skill.id,
+                "skillName": skill.skill_name,
+                "plannedResult": round(planned_avg, 2),
+                "actualResult": round(actual_avg, 2)
+            })
 
-    def individual_skill_assessment(self, request):
-        """
-        Получение оценки навыков сотрудника.
-        """
-        # Десериализация тела запроса
-        serializer = SkillAssessmentRequestSerializer(data=request.data)
-        if serializer.is_valid():
-            employee_id = serializer.validated_data['employeeIds'][0]  # Ожидаем одного сотрудника
-            skill_domen = serializer.validated_data['skillDomen']
-            start_period = serializer.validated_data['startPeriod']
-            end_period = serializer.validated_data['endPeriod']
-
-            # Логика для получения оценки навыков сотрудника
-            skills_data = []
-            for skill in Skill.objects.filter(domen=skill_domen):
-                # Фильтруем данные по навыкам и сотруднику
-                skill_assessments = EmployeeSkill.objects.filter(
-                    employee_id=employee_id,
-                    skill=skill,
-                    period__month__gte=start_period['month'],
-                    period__year__gte=start_period['year'],
-                    period__month__lte=end_period['month'],
-                    period__year__lte=end_period['year']
-                )
-
-                # Рассчитываем среднюю оценку сотрудника для конкретного навыка
-                avg_assessment = skill_assessments.aggregate(average=Avg('assesment'))['average']
-                if avg_assessment:
-                    skills_data.append({
-                        'skillId': skill.id,
-                        'skillName': skill.name,
-                        'assesment': avg_assessment
-                    })
-
-            # Формирование ответа
-            response_data = [
-                {
-                    "period": start_period,  # Здесь можно использовать цикл для каждого месяца в периоде
-                    "skillsData": skills_data
-                }
-            ]
-            return Response({"data": response_data}, status=status.HTTP_200_OK)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"data": data}, status=status.HTTP_200_OK)
 
 
- 
- 
-        
+class IndividualSkillViewSet(viewsets.ViewSet):
+
+    def get_individual_skills(self, request):
+        employee_ids = request.data.get("employeeIds", [])
+        skill_domen = request.data.get("skillDomen")
+
+        if not employee_ids or not skill_domen:
+            return Response({"error": "employeeIds and skillDomen are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        employees = Employee.objects.filter(employee_id__in=employee_ids)
+        data = []
+
+        for employee in employees:
+            skills = Skill.objects.filter(skill_type=skill_domen)
+
+            for skill in skills:
+                planned_skill = EmployeeSkill.objects.filter(employee=employee, skill=skill).first()
+                planned_result = planned_skill.skill_level if planned_skill else 0
+
+                actual_skill = EmployeeAssesmentSkill.objects.filter(employee=employee,
+                                                                     assesmentskill__skill=skill).first()
+                actual_result = actual_skill.assesment if actual_skill else 0
+
+                data.append({
+                    "skillDomen": skill_domen,
+                    "skillId": skill.id,
+                    "skillName": skill.skill_name,
+                    "plannedResult": planned_result,
+                    "actualResult": actual_result
+                })
+
+        return Response({"data": data}, status=status.HTTP_200_OK)
+
         
 # НАДО БУДЕТСДЕЛАТЬ ЧТОБЫ ВОЗВРАТ БЫЛ НЕ return Response({"data": response_data} А ЧЕРЕЗ СЕРИАЛИЗАТОР ВО ВСЕХ ВЬЮ 
