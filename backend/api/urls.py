@@ -2,9 +2,10 @@ from django.urls import include, path, re_path
 from rest_framework import routers
 
 from api.views import (
-    # DevelopmentPlanViewSet,
     MetricViewSet, EmployeesViewSet,
-    TeamMetricViewSet, TeamCountEmployeeViewSet, SkillAssessmentViewSet, TeamIndividualCompetenciesViewSet, CompetencyLevelViewSet
+    TeamMetricViewSet, TeamCountEmployeeViewSet,
+    TeamIndividualCompetenciesViewSet,
+    CompetencyLevelViewSet
 )
 
 from .views import DevelopmentPlan
@@ -12,9 +13,6 @@ from core.models import AssesmentSkill
 
 router_v1 = routers.DefaultRouter()
 
-# router_v1.register(r'development_plan', DevelopmentPlanViewSet, basename='development_plan')
-# router_v1.register(r'skills/(?P<skill_type>hard|soft)', SkillViewSet, basename='skill')
-# процентов развития сколька планов развития
 
 router_v1.register(r'teams/(?P<team_slug>[\w-]+)/count_employees', TeamCountEmployeeViewSet, basename='count_employees')
 router_v1.register(r'teams/(?P<team_slug>[\w-]+)/employees', EmployeesViewSet, basename='employees')

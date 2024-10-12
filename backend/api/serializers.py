@@ -132,18 +132,6 @@ class EmployeeSerializer(serializers.ModelSerializer):
         return EmployeeTrainingApplication.objects.filter(employee=obj).exists()
 
 
-# class DevelopmentPlanSerializer(serializers.ModelSerializer):
-#     """ ."""
-#
-#     key_skill = serializers.CharField(source='key_skill.skill_name')
-#
-#     class Meta:
-#         model = DevelopmentPlan
-#         fields = (
-#             'month', 'year', 'key_skill',
-#         )
-
-
 class MetricRequestSerializer(serializers.Serializer):
     employeeIds = serializers.ListField(
         child=serializers.CharField(),
@@ -151,7 +139,6 @@ class MetricRequestSerializer(serializers.Serializer):
     )
     startPeriod = serializers.DateField(required=True)
     endPeriod = serializers.DateField(required=True)
-
 
 
 class IndividualDevelopmentPlanRequestSerializer(serializers.Serializer):
@@ -186,16 +173,19 @@ class PeriodSerializer(serializers.Serializer):
     month = serializers.CharField(max_length=20)
     year = serializers.IntegerField()
 
+
 class SkillAssessmentRequestSerializer(serializers.Serializer):
     employeeIds = serializers.ListField(child=serializers.CharField())
     skillDomen = serializers.CharField(max_length=50)
     startPeriod = PeriodSerializer()
     endPeriod = PeriodSerializer()
 
+
 class SkillDataSerializer(serializers.Serializer):
     skillId = serializers.IntegerField()
     skillName = serializers.CharField(max_length=100)
     assesment = serializers.IntegerField()
+
 
 class TeamSkillAssessmentResponseSerializer(serializers.Serializer):
     period = PeriodSerializer()
@@ -232,3 +222,21 @@ class TeamMetricsResponseSerializer(serializers.Serializer):
     numberOfEmployee = serializers.CharField()
     numberOfBusFactor = serializers.CharField()
     numberOfKeyPeople = serializers.CharField()
+
+
+#################################
+class TeamSkillAssessmentSerializer(serializers.Serializer):
+    skillDomen = serializers.CharField()
+
+
+class IndividualSkillAssessmentSerializer(serializers.Serializer):
+    employeeIds = serializers.ListField(child=serializers.IntegerField())
+    skillDomen = serializers.CharField()
+
+
+class SkillLevelAssessmentSerializer(serializers.Serializer):
+    employeeIds = serializers.ListField(child=serializers.IntegerField())
+    skillDomen = serializers.CharField()
+    skillId = serializers.IntegerField()
+
+#################################

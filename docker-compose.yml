@@ -1,5 +1,4 @@
-# docker-compose.yml
-version: '3.3'
+version: '3.8'
 
 volumes:
   pg_data:
@@ -9,8 +8,12 @@ volumes:
 services:
 
   db:
-    image: postgres:13
+    image: postgres:14
     env_file: .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - pg_data:/var/lib/postgresql/data
 
@@ -21,6 +24,12 @@ services:
       - static:/app/static/
     depends_on:
       - db
+    environment:
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_HOST: db
+      DB_PORT: 5432
 
   nginx:
     image: nginx:1.21.3
@@ -32,4 +41,5 @@ services:
       - drf-yasg:/var/html/static/
       - static:/var/html/static/
     depends_on:
+      - db
       - backend

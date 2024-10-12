@@ -80,6 +80,8 @@ class EmployeesViewSet(mixins.ListModelMixin,  # Для получения сп�
 
 
 class MetricViewSet(viewsets.ViewSet):
+    """ . """
+    
     def create(self, request, metric_type, employee_id):
         if request.method != 'POST':
             return Response({"error": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -388,7 +390,6 @@ class CompetencyLevelViewSet(viewsets.ViewSet):
             raise ValueError(f"Invalid competency level: {competency_level}")
 #################################
 
-
 class SkillAssessmentViewSet(viewsets.ViewSet):
     """
     ViewSet для получения оценки навыков команды и индивидуальных навыков.
@@ -492,7 +493,8 @@ class SkillAssessmentViewSet(viewsets.ViewSet):
             return Response({"data": response_data}, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+
+
  
  
         
