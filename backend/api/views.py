@@ -39,18 +39,38 @@ from django.shortcuts import get_object_or_404
 from datetime import datetime
 from calendar import month_name
 
+# class EmployeesViewSet(viewsets.ModelViewSet):
+#     serializer_class = EmployeeSerializer
 
-class EmployeesViewSet(viewsets.ModelViewSet): 
+#     def get_queryset(self):
+#         team_slug = self.kwargs.get('team_slug')  # Получаем слаг команды
+#         user = self.request.user
+
+#         # Получаем команду или возвращаем 404, если она не найдена
+#         team = get_object_or_404(Team, slug=team_slug)
+
+#         # Получаем менеджера или возвращаем 404, если он не найден
+#         manager = get_object_or_404(ManagerTeam, email=user.email)
+
+#         # Возвращаем сотрудников, относящихся к команде текущего менеджера
+#         return Employee.objects.filter(
+#             teams__team=team,  # Используем ManyToMany связь
+#             teams__manager=manager  # Фильтруем по менеджеру
+#         )
+
+
+class EmployeesViewSet(mixins.ListModelMixin,  # Для получения списка сотрудников
+                        mixins.RetrieveModelMixin,  # Для получения конкретного сотрудника по ID
+                        viewsets.GenericViewSet): 
     serializer_class = EmployeeSerializer
     
     def get_queryset(self):
         team_slug = self.kwargs.get('team_slug')  # Получаем слаг команды
-        print(team_slug)
         # user = self.request.user
         # user = ManagerTeam.objects.get(id=1)
         
         team = Team.objects.get(slug=team_slug)  # Предполагается, что у команды есть связь с slug
-        manager = ManagerTeam.objects.get(id=1)  # Предполагается, что у менеджера есть связь с пользователем
+        manager = ManagerTeam.objects.get(id=2)  # Предполагается, что у менеджера есть связь с пользователем
 
         # Возвращаем сотрудников, относящихся к команде текущего менеджера
         return Employee.objects.filter(
@@ -60,8 +80,9 @@ class EmployeesViewSet(viewsets.ModelViewSet):
 
 
 class MetricViewSet(viewsets.ViewSet):
-    serializer_class = TeamMetricsResponseSerializer
-    def create(self, request, metric_type):
+    """ . """
+    
+    def create(self, request, metric_type, employee_id):
         if request.method != 'POST':
             return Response({"error": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
@@ -70,7 +91,7 @@ class MetricViewSet(viewsets.ViewSet):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        employee_ids = serializer.validated_data['employeeIds']
+        # Получаем даты из сериализатора
         start_date, end_date = self.convert_to_date(
             serializer.validated_data['startPeriod'], 
             serializer.validated_data['endPeriod']
@@ -85,7 +106,8 @@ class MetricViewSet(viewsets.ViewSet):
         if not model:
             return Response({"error": "Invalid metric type."}, status=status.HTTP_400_BAD_REQUEST)
 
-        dashboard, last_performance = self.get_employee_metrics(employee_ids, model, start_date, end_date)
+        # Получаем метрики для одного сотрудника по его ID
+        dashboard, last_performance = self.get_employee_metrics(employee_id, model, start_date, end_date)
 
         response_data = {
             "dashboard": [],
@@ -99,26 +121,27 @@ class MetricViewSet(viewsets.ViewSet):
 
         return Response(response_data, status=status.HTTP_200_OK)
 
-    def get_employee_metrics(self, employee_ids, model, start_date, end_date):
+    def get_employee_metrics(self, employee_id, model, start_date, end_date):
         dashboard = []
 
-        for employee_id in employee_ids:
-            employee_metrics = model.objects.filter(
-                employee__employee_id=employee_id,
-                add_date__range=[start_date, end_date]
-            )
+        # Измените фильтрацию, чтобы использовать только один ID
+        employee_metrics = model.objects.filter(
+            employee__id=employee_id,
+            add_date__range=[start_date, end_date]
+        )
 
-            if not employee_metrics.exists():
-                continue
 
-            # Группируем метрики по месяцам
-            metrics_by_month = self.group_metrics_by_month(employee_metrics)
+        if not employee_metrics.exists():
+            return dashboard, "0.00"  # Если нет метрик, возвращаем пустой результат
 
-            for (year, month), performance in metrics_by_month.items():
-                dashboard.append({
-                    "period": {"month": month_name[month], "year": year},
-                    "performance": str(performance)
-                })
+        # Группируем метрики по месяцам
+        metrics_by_month = self.group_metrics_by_month(employee_metrics)
+
+        for (year, month), performance in metrics_by_month.items():
+            dashboard.append({
+                "period": {"month": month_name[month], "year": year},
+                "performance": str(performance)
+            })
 
         last_performance = dashboard[-1]['performance'] if dashboard else "0.00"
         return dashboard, last_performance
@@ -131,8 +154,8 @@ class MetricViewSet(viewsets.ViewSet):
         return metrics_by_month
 
     def convert_to_date(self, start_period, end_period):
-        start_date = datetime.strptime(f"{start_period['year']}-{start_period['month']}-09", "%Y-%B-%d").date()
-        end_date = datetime.strptime(f"{end_period['year']}-{end_period['month']}-09", "%Y-%B-%d").date()
+        start_date = datetime.strptime(f"{start_period['year']}-{start_period['month']}-13", "%Y-%B-%d").date()
+        end_date = datetime.strptime(f"{end_period['year']}-{end_period['month']}-13", "%Y-%B-%d").date()
         return start_date, end_date
 
 
@@ -243,8 +266,8 @@ class TeamMetricViewSet(viewsets.ViewSet):
         return Response(response_data, status=status.HTTP_200_OK)
 
     def convert_to_date(self, start_period, end_period):
-        return (datetime.strptime(f"{start_period['year']}-{start_period['month']}-09", "%Y-%B-%d").date(),
-                datetime.strptime(f"{end_period['year']}-{end_period['month']}-09", "%Y-%B-%d").date())
+        return (datetime.strptime(f"{start_period['year']}-{start_period['month']}-12", "%Y-%B-%d").date(),
+                datetime.strptime(f"{end_period['year']}-{end_period['month']}-12", "%Y-%B-%d").date())
 
     def get_metric_model(self, metric_type):
         return {
@@ -274,14 +297,16 @@ class TeamIndividualCompetenciesViewSet(viewsets.ViewSet):
 
     def get_competencies(self, team, employee_id, skill_domen):
         if employee_id is not None:
-            employee = get_object_or_404(team.employee.all(), id=employee_id)
+            # Загружаем только одного сотрудника по его ID
             return EmployeeCompetency.objects.filter(
-                employee=employee,
+                employee__id=employee_id,
+                employee__teams=team,
                 competency__competency_type=skill_domen
             )
         else:
+            # Загружаем все компетенции сотрудников команды
             return EmployeeCompetency.objects.filter(
-                employee__in=team.employee.all(),
+                employee__teams=team,
                 competency__competency_type=skill_domen
             )
 
@@ -324,7 +349,7 @@ class CompetencyLevelViewSet(viewsets.ViewSet):
             employee__in=employees,
             competency__id=competency_id,
         )
-
+        
         # Если компетенций нет
         if not employee_competencies.exists():
             return Response({"data": []}, status=status.HTTP_200_OK)
@@ -353,11 +378,16 @@ class CompetencyLevelViewSet(viewsets.ViewSet):
         """
         Метод для определения цвета в зависимости от уровня компетенции.
         """
-        level = int(competency_level)
-        if level > 80:
-            return "green"
-        elif level >= 60:
+        level = int(competency_level)  # Преобразуем строковый уровень в число
+
+        if level <= 33:
+            return "red"
+        elif 34 <= level <= 66:
             return "yellow"
+        elif level >= 67:
+            return "green"
+        else:
+            raise ValueError(f"Invalid competency level: {competency_level}")
 #################################
 
 class SkillAssessmentViewSet(viewsets.ViewSet):
