@@ -89,7 +89,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DB_TYPE = os.getenv('BD_TYPE', 'sqlite')
+DB_TYPE = os.getenv('DB_TYPE', 'Not_DB')
 if DB_TYPE == 'postgres':
     DATABASES = {
         'default': {
