@@ -1,5 +1,5 @@
 from django_filters import rest_framework as filters
-from users.models import Employee
+from core.models import Employee
 
 
 class EmployeeFilter(filters.FilterSet):

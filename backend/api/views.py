@@ -1,7 +1,13 @@
 from django.shortcuts import render
 from django_filters import rest_framework as filters
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.db.models import Avg
+from django.shortcuts import get_object_or_404
+from datetime import datetime
+from calendar import month_name
 from rest_framework import (
     mixins,
     permissions,
@@ -33,19 +39,17 @@ from .serializers import (
     CompetencyLevelRequestSerializer,
     SkillLevelRequestSerializer, TeamSkillSerializer,
 )
+from .filters import EmployeeFilter
 
-from rest_framework.response import Response
-from django.db.models import Avg
-from django.shortcuts import get_object_or_404
-from datetime import datetime
-from calendar import month_name
+
 
 
 class EmployeesViewSet(mixins.ListModelMixin,  # Для получения списка сотрудников
                         mixins.RetrieveModelMixin,  # Для получения конкретного сотрудника по ID
                         viewsets.GenericViewSet): 
     serializer_class = EmployeeSerializer
-    filterset_class = filters.FilterSet
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = EmployeeFilter
     
     def get_queryset(self):
         team_slug = self.kwargs.get('team_slug')  # Получаем слаг команды
