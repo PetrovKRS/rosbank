@@ -564,12 +564,6 @@ class EmployeeTeam(models.Model):
         ordering = (
             'team',
         )
-        constraints = (
-            models.UniqueConstraint(
-                fields=('employee', 'team'),
-                name='unique_employee_team'
-            ),
-        )
 
     def __str__(self):
         return f"{self.employee} - {self.team}"
