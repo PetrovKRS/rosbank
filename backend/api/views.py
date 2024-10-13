@@ -19,19 +19,20 @@ from core.models import (
     BusFactor, EmployeeBusFactor, Grade, EmployeeGrade, KeySkill, EmployeeKeySkill,
     Team, EmployeeTeam, Position, EmployeePosition, Competency, PositionCompetency,
     TeamPosition, EmployeeCompetency, Skill, EmployeeSkill, SkillForCompetency,
-    ExpectedSkill, EmployeeExpectedSkill, CompetencyForExpectedSkill, Employee
+    ExpectedSkill, EmployeeExpectedSkill, CompetencyForExpectedSkill, Employee,
+    EmployeeAssesmentSkill, AssesmentSkill,
 )
 from .serializers import (
     EmployeeSerializer,
-    # DevelopmentPlanSerializer,
     IndividualDevelopmentPlanRequestSerializer,
     TeamMetricsResponseSerializer,
-    # SkillAssessmentRequestSerializer,
     TeamMetricsRequestSerializer, 
     SkillDomenRequestSerializer, 
     MetricResponseSerializer,
     CompetencyLevelRequestSerializer,
     SkillLevelRequestSerializer,
+    TeamSkillAverageSerializer,
+    IndividualSkillAverageSerializer,
 )
 
 from rest_framework.response import Response
@@ -394,7 +395,7 @@ class CompetencyLevelViewSet(viewsets.ViewSet):
 class TeamSkillViewSet(viewsets.ViewSet):
 
     def create(self, request, team_slug):
-    # def get_average_skills(self, request, team_slug):
+
         skill_domen = request.data.get("skillDomen")
 
         if not skill_domen:
@@ -405,25 +406,34 @@ class TeamSkillViewSet(viewsets.ViewSet):
         data = []
 
         for skill in skills:
-            planned_avg = EmployeeSkill.objects.filter(skill=skill).aggregate(Avg('skill_level'))[
-                              'skill_level__avg'] or 0
-            actual_avg = EmployeeAssesmentSkill.objects.filter(assesmentskill__skill=skill).aggregate(Avg('assesment'))[
-                             'assesment__avg'] or 0
+            # Получаем средние плановые результаты по данному навыку
+            planned_avg = EmployeeSkill.objects.filter(skill=skill).aggregate(Avg('skill_level'))['skill_level__avg'] or 0
 
-            data.append({
-                "skillDomen": skill_domen,
-                "skillId": skill.id,
-                "skillName": skill.skill_name,
-                "plannedResult": round(planned_avg, 2),
-                "actualResult": round(actual_avg, 2)
-            })
+            # Исправление: сначала ищем соответствующий экземпляр AssesmentSkill
+            assesment_skill = AssesmentSkill.objects.filter(assesmentskill_name=skill.skill_name).first()
 
+            if not assesment_skill:
+                continue  # Пропускаем этот навык, если оценка не найдена
+
+        # Теперь выполняем запрос к EmployeeAssesmentSkill для получения фактических оценок
+        actual_avg = EmployeeAssesmentSkill.objects.filter(assesmentskill=assesment_skill).aggregate(Avg('assesment'))[
+                         'assesment__avg'] or 0
+
+        data.append({
+            "skillDomen": skill_domen,
+            "skillId": skill.id,
+            "skillName": skill.skill_name,
+            "plannedResult": round(planned_avg, 2),
+            "actualResult": round(actual_avg, 2)
+        })
+
+        serializer = TeamSkillAverageSerializer(data, many=True)
         return Response({"data": data}, status=status.HTTP_200_OK)
 
 
 class IndividualSkillViewSet(viewsets.ViewSet):
 
-    def get_individual_skills(self, request):
+    def create(self, request):
         employee_ids = request.data.get("employeeIds", [])
         skill_domen = request.data.get("skillDomen")
 
