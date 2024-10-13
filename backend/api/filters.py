@@ -25,9 +25,9 @@ class EmployeeFilter(filters.FilterSet):
         distinct=True
     )
 
-
     class Meta:
         model = Employee
         fields = (
-            'position', 'grade', 'skill', 'competency'
+            'position', 'grade', 'skill',
+            'competency', 'last_name',
         )
