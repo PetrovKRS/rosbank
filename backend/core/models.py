@@ -7,6 +7,7 @@ from django.db import models
 from django.utils.formats import date_format
 from django.views.decorators.http import condition
 from django_filters.utils import verbose_field_name
+from social_core.utils import first
 
 from users.models import ManagerTeam
 import uuid
@@ -35,7 +36,7 @@ class Employee(models.Model):
     )
     status = models.CharField(
         max_length=50
-    )  # E.g., completed, in-progress
+    )
     registration_date = models.DateField(
         auto_now_add=True,
         db_index=True,
@@ -53,6 +54,13 @@ class Employee(models.Model):
         ordering = (
             'first_name',
             'last_name',
+        )
+        constraints = (
+            models.UniqueConstraint(
+                fields=('employee_id', 'email'),
+                name='unique_first_name_email',
+                violation_error_message='Сотрудник с таким именем и почтой уже существует.'
+            ),
         )
 
     def __str__(self):
@@ -154,6 +162,12 @@ class EmployeeDevelopmentPlan(models.Model):
         verbose_name_plural = 'Планы развития сотрудников'
         ordering = (
             'development_plan',
+        )
+        constraints = (
+            models.UniqueConstraint(
+                fields=('employee', 'development_plan'),
+                name='unique_employee_development_plan'
+            ),
         )
 
     def __str__(self):
@@ -317,6 +331,12 @@ class EmployeeTrainingApplication(models.Model):
         ordering = (
             'training_application',
         )
+        constraints = (
+            models.UniqueConstraint(
+                fields=('employee', 'training_application'),
+                name='unique_employee_training_application'
+            ),
+        )
 
     def __str__(self):
         return f"{self.employee} - {self.training_application}"    
@@ -430,6 +450,12 @@ class EmployeeGrade(models.Model):
         ordering = (
             'grade',
         )
+        constraints = (
+            models.UniqueConstraint(
+                fields=('employee', 'grade'),
+                name='unique_employee_grade'
+            ),
+        )
 
     def __str__(self):
         return f"{self.employee} - {self.grade}"
@@ -538,6 +564,12 @@ class EmployeeTeam(models.Model):
         ordering = (
             'team',
         )
+        constraints = (
+            models.UniqueConstraint(
+                fields=('employee', 'team'),
+                name='unique_employee_team'
+            ),
+        )
 
     def __str__(self):
         return f"{self.employee} - {self.team}"
@@ -586,6 +618,12 @@ class EmployeePosition(models.Model):
         verbose_name_plural = 'Должности сотрудников'
         ordering = (
             'position',
+        )
+        constraints = (
+            models.UniqueConstraint(
+                fields=('employee', 'position'),
+                name='unique_employee_position'
+            ),
         )
 
     def __str__(self):
@@ -712,6 +750,12 @@ class EmployeeCompetency(models.Model):
         verbose_name = 'Компетенция сотрудника'
         verbose_name_plural = 'Компетенции сотрудников'
         ordering = ('competency',)
+        constraints = (
+            models.UniqueConstraint(
+                fields=('employee', 'competency'),
+                name='unique_employee_competency'
+            ),
+        )
 
     def __str__(self):
         return f"{self.employee} - {self.competency} ({self.competency_level})"
@@ -788,6 +832,12 @@ class EmployeeSkill(models.Model):
         verbose_name_plural = 'Навыки сотрудников'
         ordering = (
             'skill',
+        )
+        constraints = (
+            models.UniqueConstraint(
+                fields=('employee', 'skill'),
+                name='unique_employee_skill'
+            ),
         )
 
     def __str__(self):
