@@ -433,7 +433,7 @@ class TeamSkillViewSet(viewsets.ViewSet):
 
 class IndividualSkillViewSet(viewsets.ViewSet):
 
-    def create(self, request):
+    def create(self, request, team_slug):
         employee_ids = request.data.get("employeeIds", [])
         skill_domen = request.data.get("skillDomen")
 
