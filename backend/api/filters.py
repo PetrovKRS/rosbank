@@ -18,6 +18,13 @@ class EmployeeFilter(filters.FilterSet):
     competency = filters.CharFilter(
         field_name='competencies__competency__competency_name'
     )
+    last_name = filters.CharFilter(
+        field_name='last_name',
+        lookup_expr='icontains',
+        label='Фамилия сотрудника',
+        distinct=True
+    )
+
 
     class Meta:
         model = Employee
