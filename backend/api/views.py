@@ -236,6 +236,8 @@ class TeamMetricViewSet(viewsets.ViewSet):
 
 
 class TeamIndividualCompetenciesViewSet(viewsets.ViewSet):
+    """ ViewSet для получения значений оценки компетенции сотрудника/команды. """
+
     def create(self, request, team_slug, employee_id=None):
         if request.method != 'POST':
             return Response({"error": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -283,9 +285,7 @@ class TeamIndividualCompetenciesViewSet(viewsets.ViewSet):
 
 
 class CompetencyLevelViewSet(viewsets.ViewSet):
-    """
-    ViewSet для получения уровня компетенций сотрудников.
-    """
+    """ ViewSet для получения уровня компетенций сотрудников. """
 
     def create(self, request, team_slug, employee_id=None):
         if request.method != 'POST':
@@ -318,11 +318,13 @@ class CompetencyLevelViewSet(viewsets.ViewSet):
         return Response({"data": data}, status=status.HTTP_200_OK)
 
     def get_employees(self, team, employee_id):
-        """Получаем сотрудников команды, фильтруя по employee_id, если передан."""
+        """ Получаем сотрудников команды, фильтруя по employee_id, если передан. """
+
         return team.employee.filter(id=employee_id) if employee_id else team.employee.all()
 
     def prepare_competency_data(self, employee_competencies):
-        """Подготавливаем данные для ответа."""
+        """ Подготавливаем данные для ответа. """
+
         data = []
         for emp_competency in employee_competencies:
             data.append({
@@ -334,9 +336,8 @@ class CompetencyLevelViewSet(viewsets.ViewSet):
         return data
 
     def get_color_based_on_assessment(self, competency_level):
-        """
-        Метод для определения цвета в зависимости от уровня компетенции.
-        """
+        """ Метод для определения цвета в зависимости от уровня компетенции. """
+
         level = int(competency_level)  # Преобразуем строковый уровень в число
 
         if level <= 33:
@@ -347,85 +348,76 @@ class CompetencyLevelViewSet(viewsets.ViewSet):
             return "green"
         else:
             raise ValueError(f"Invalid competency level: {competency_level}")
-#################################
 
-class TeamSkillViewSet(viewsets.ViewSet):
 
-    def create(self, request, team_slug):
+class TeamIndividualSkillsViewSet(viewsets.ViewSet):
+    """ ViewSet для получения средних значений навыков сотрудника/команды. """
 
-        skill_domen = request.data.get("skillDomen")
+    def create(self, request, team_slug, employee_id=None):
+        if request.method != 'POST':
+            return Response(
+                {"error": "Method not allowed."},
+                status=status.HTTP_405_METHOD_NOT_ALLOWED
+            )
 
-        if not skill_domen:
-            return Response({"error": "skillDomen is required"}, status=status.HTTP_400_BAD_REQUEST)
+        if 'employeeIds' in self.request.data:
+            employee_id = self.request.data.get('employeeIds')
+            # Получаем сотрудников по переданным ID
+            employees = Employee.objects.filter(id__in=employee_id)
+        request_serializer = SkillDomenRequestSerializer(data=request.data)
 
-        skills = Skill.objects.filter(skill_type=skill_domen)
-        team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
+        if request_serializer.is_valid():
+            skill_domen = request_serializer.validated_data['skillDomen']
+            team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
+
+            skills = self.get_skills(team, employee_id, skill_domen)
+            data = self.prepare_skill_data(skills, skill_domen, team)
+
+            # Возвращаем данные в формате {"data": data}
+            return Response({"data": data}, status=status.HTTP_200_OK)
+
+        return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_skills(self, team, employee_id, skill_domen):
+        if employee_id is not None:
+            # Загружаем только одного сотрудника по его ID
+            return EmployeeSkill.objects.filter(
+                employee__id__in=employee_id,
+                employee__teams=team,
+                skill__skill_type=skill_domen
+            )
+        else:
+            # Загружаем все компетенции сотрудников команды
+            return EmployeeSkill.objects.filter(
+                employee__teams=team,
+                skill__skill_type=skill_domen
+            )
+
+    def prepare_skill_data(self, skills, skill_domen, team):
         data = []
-
         for skill in skills:
-            # Получаем средние плановые результаты по данному навыку
-            planned_avg = EmployeeSkill.objects.filter(skill=skill).aggregate(Avg('skill_level'))['skill_level__avg'] or 0
 
-            # Исправление: сначала ищем соответствующий экземпляр AssesmentSkill
-            assesment_skill = AssesmentSkill.objects.filter(assesmentskill_name=skill.skill_name).first()
+            planned_avg = EmployeeSkill.objects.filter(skill__id=skill.skill.id
+                ).aggregate(Avg('planned_result'))['planned_result__avg'] or 0
 
-            if not assesment_skill:
-                continue  # Пропускаем этот навык, если оценка не найдена
+            actual_avg = EmployeeSkill.objects.filter(skill__id=skill.skill.id
+                ).aggregate(Avg('actual_result'))['actual_result__avg'] or 0
 
-        # Теперь выполняем запрос к EmployeeAssesmentSkill для получения фактических оценок
-        actual_avg = EmployeeAssesmentSkill.objects.filter(assesmentskill=assesment_skill).aggregate(Avg('assesment'))[
-                         'assesment__avg'] or 0
-
-        data.append({
-            "skillDomen": skill_domen,
-            "skillId": skill.id,
-            "skillName": skill.skill_name,
-            "plannedResult": round(planned_avg, 2),
-            "actualResult": round(actual_avg, 2)
-        })
-
-        serializer = TeamSkillAverageSerializer(data, many=True)
-        return Response({"data": data}, status=status.HTTP_200_OK)
-
-
-class IndividualSkillViewSet(viewsets.ViewSet):
-
-    def create(self, request, team_slug):
-        employee_ids = request.data.get("employeeIds", [])
-        skill_domen = request.data.get("skillDomen")
-
-        if not employee_ids or not skill_domen:
-            return Response({"error": "employeeIds and skillDomen are required"}, status=status.HTTP_400_BAD_REQUEST)
-
-        employees = Employee.objects.filter(employee_id__in=employee_ids)
-        data = []
-
-        for employee in employees:
-            skills = Skill.objects.filter(skill_type=skill_domen)
-
-            for skill in skills:
-                planned_skill = EmployeeSkill.objects.filter(employee=employee, skill=skill).first()
-                planned_result = planned_skill.skill_level if planned_skill else 0
-
-                actual_skill = EmployeeAssesmentSkill.objects.filter(employee=employee,
-                                                                     assesmentskill__skill=skill).first()
-                actual_result = actual_skill.assesment if actual_skill else 0
-
-                data.append({
-                    "skillDomen": skill_domen,
-                    "skillId": skill.id,
-                    "skillName": skill.skill_name,
-                    "plannedResult": planned_result,
-                    "actualResult": actual_result
-                })
-
-        return Response({"data": data}, status=status.HTTP_200_OK)
+            temp = {
+                "skillDomen": skill_domen,
+                "skillId": skill.skill.id,
+                "skillName": skill.skill.skill_name,
+                "plannedResult": round(planned_avg, 2),
+                "actualResult": round(actual_avg, 2)
+            }
+            # Проверка, если в data уже есть элемент с таким же skillId
+            if not any(d['skillId'] == temp['skillId'] for d in data):
+                data.append(temp)
+        return data
 
 
 class SkillLevelViewSet(viewsets.ViewSet):
-    """
-    ViewSet для получения уровня навыков сотрудников.
-    """
+    """ ViewSet для получения уровня навыков сотрудников. """
 
     def create(self, request, team_slug, employee_id=None):
         if request.method != 'POST':
@@ -459,10 +451,12 @@ class SkillLevelViewSet(viewsets.ViewSet):
 
     def get_employees(self, team, employee_id):
         """Получаем сотрудников команды, фильтруя по employee_id, если передан."""
+
         return team.employee.filter(id=employee_id) if employee_id else team.employee.all()
 
     def prepare_skill_data(self, employee_skills):
         """Подготавливаем данные для ответа."""
+
         data = []
         for emp_skill in employee_skills:
             data.append({
@@ -474,9 +468,8 @@ class SkillLevelViewSet(viewsets.ViewSet):
         return data
 
     def get_color_based_on_assessment(self, skill_level):
-        """
-        Метод для определения цвета в зависимости от уровня компетенции.
-        """
+        """ Метод для определения цвета в зависимости от уровня навыка. """
+
         level = int(skill_level)  # Преобразуем строковый уровень в число
 
         if level <= 33:
@@ -487,5 +480,3 @@ class SkillLevelViewSet(viewsets.ViewSet):
             return "green"
         else:
             raise ValueError(f"Invalid skill level: {skill_level}")
-
-# НАДО БУДЕТСДЕЛАТЬ ЧТОБЫ ВОЗВРАТ БЫЛ НЕ return Response({"data": response_data} А ЧЕРЕЗ СЕРИАЛИЗАТОР ВО ВСЕХ ВЬЮ 

@@ -5,11 +5,13 @@ from api.views import (
     MetricViewSet, EmployeesViewSet,
     TeamMetricViewSet, TeamCountEmployeeViewSet,
     TeamIndividualCompetenciesViewSet,
-    CompetencyLevelViewSet, TeamSkillViewSet,
-    IndividualSkillViewSet, SkillLevelViewSet,
+    CompetencyLevelViewSet,
+    # TeamSkillViewSet,
+    # IndividualSkillViewSet,
+    SkillLevelViewSet,
 )
 
-from .views import DevelopmentPlan
+from .views import DevelopmentPlan, TeamIndividualSkillsViewSet
 from core.models import AssesmentSkill
 
 router_v1 = routers.DefaultRouter()
@@ -25,8 +27,8 @@ router_v1.register(
     CompetencyLevelViewSet,  # Новый ViewSet для получения уровней компетенций
     basename='competency_level'
 )
-router_v1.register(r'teams/(?P<team_slug>[\w-]+)/skills', TeamSkillViewSet, basename='skills')
-router_v1.register(r'teams/(?P<team_slug>[\w-]+)/individual-skills', IndividualSkillViewSet, basename='individual-skills')
+router_v1.register(r'teams/(?P<team_slug>[\w-]+)/skills', TeamIndividualSkillsViewSet, basename='skills')
+router_v1.register(r'teams/(?P<team_slug>[\w-]+)/individual-skills', TeamIndividualSkillsViewSet, basename='individual-skills')
 router_v1.register(r'teams/(?P<team_slug>[\w-]+)/skills/level', SkillLevelViewSet, basename='skill-level')
 
 urlpatterns = [

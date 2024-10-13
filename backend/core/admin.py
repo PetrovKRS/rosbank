@@ -10,6 +10,7 @@ from .models import (
     TeamPosition, Competency, EmployeeCompetency,
     Skill, EmployeeSkill, SkillForCompetency, ExpectedSkill,
     EmployeeExpectedSkill, CompetencyForExpectedSkill,
+    AssesmentSkill, EmployeeAssesmentSkill,
 )
 
 
@@ -20,6 +21,15 @@ from .models import (
 #         'pk', 'first_name', 'last_name', 'email', 'status',
 #         'registration_date', 'last_login_date',
 #     )
+
+@admin.register(AssesmentSkill)
+class AssesmentSkillAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(EmployeeAssesmentSkill)
+class EmployeeAssesmentSkillAdmin(admin.ModelAdmin):
+    pass
 
 
 @admin.register(DevelopmentPlan)

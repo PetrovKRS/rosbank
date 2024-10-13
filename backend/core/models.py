@@ -1,6 +1,8 @@
 from enum import Enum
+from wsgiref.validate import validator
 
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.utils.formats import date_format
 from django.views.decorators.http import condition
@@ -722,6 +724,7 @@ class Skill(models.Model):
 
     skill_name = models.CharField(
         max_length=255,
+        unique=True,
         verbose_name='Название навыка',
     )
     skill_type = models.CharField(
@@ -762,6 +765,22 @@ class EmployeeSkill(models.Model):
     skill_level = models.IntegerField(
         default=0,
         verbose_name='Уровень навыка сотрудника',
+    )
+    planned_result = models.FloatField(
+        default=0.0,
+        validators=(
+            MinValueValidator(0),
+            MaxValueValidator(5)
+        ),
+        verbose_name='Плановая оценка',
+    )
+    actual_result = models.FloatField(
+        default=0.0,
+        validators=(
+            MinValueValidator(0),
+            MaxValueValidator(5)
+        ),
+        verbose_name='Фактическая оценка',
     )
 
     class Meta:
