@@ -1,3 +1,4 @@
+from django.template.defaultfilters import length
 from rest_framework import serializers
 from users.models import ManagerTeam
 from core.models import (
@@ -74,18 +75,12 @@ class AssesmentOfPotentionSerializer(serializers.Serializer):
     """ Сериализатор для оценки потенциала сотрудника. """
     assesmentLevel = serializers.CharField(source='grades.grade.grade_name')
     involvmentLevel = serializers.CharField(source='employee_engagements.engagement.engagement_name')
-    
 
-    
 
 class EmployeeSerializer(serializers.ModelSerializer):
     """ Основной сериализатор для сотрудников. """
 
     worker = serializers.SerializerMethodField()
-    # skills = SkillSerializer(many=True)
-    # competencies = CompetencySerializer(
-    #     source='employee_competencies', many=True
-    # )
     position = serializers.CharField(
         source='positions.position.position_name', allow_null=True
     )
@@ -103,7 +98,8 @@ class EmployeeSerializer(serializers.ModelSerializer):
         model = Employee
         fields = (
             'id', 'position', 'worker', 'grade', 'key_people',
-            'bus_factor', 'education', 'assesmentOfPotention', 'skill'
+            'bus_factor', 'education', 'assesmentOfPotention', 'skill',
+            # 'length_people', 'length_key_people', 'length_bus_factor',
         )
 
     def get_worker(self, obj):
@@ -213,6 +209,13 @@ class SkillSerializer(serializers.ModelSerializer):
     class Meta:
         model = Skill
         fields = ['skillId', 'skillName', 'plannedResult', 'actualResult']
+
+
+class TeamSkillSerializer(serializers.Serializer):
+    numberOfEmployee = serializers.CharField(max_length=10)
+    numberOfBusFactor = serializers.CharField(max_length=10)
+    numberOfKeyPeople = serializers.CharField(max_length=10)
+
 
 class TeamSkillAverageSerializer(serializers.Serializer):
     skillDomen = serializers.CharField()

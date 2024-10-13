@@ -22,17 +22,19 @@ from core.models import (
     ExpectedSkill, EmployeeExpectedSkill, CompetencyForExpectedSkill, Employee,
     EmployeeAssesmentSkill, AssesmentSkill,
 )
+from yaml import serialize
+
 from .serializers import (
     EmployeeSerializer,
     IndividualDevelopmentPlanRequestSerializer,
     TeamMetricsResponseSerializer,
-    TeamMetricsRequestSerializer, 
-    SkillDomenRequestSerializer, 
+    TeamMetricsRequestSerializer,
+    SkillDomenRequestSerializer,
     MetricResponseSerializer,
     CompetencyLevelRequestSerializer,
     SkillLevelRequestSerializer,
     TeamSkillAverageSerializer,
-    IndividualSkillAverageSerializer,
+    IndividualSkillAverageSerializer, TeamSkillSerializer,
 )
 
 from rest_framework.response import Response
@@ -40,25 +42,6 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from datetime import datetime
 from calendar import month_name
-
-# class EmployeesViewSet(viewsets.ModelViewSet):
-#     serializer_class = EmployeeSerializer
-
-#     def get_queryset(self):
-#         team_slug = self.kwargs.get('team_slug')  # Получаем слаг команды
-#         user = self.request.user
-
-#         # Получаем команду или возвращаем 404, если она не найдена
-#         team = get_object_or_404(Team, slug=team_slug)
-
-#         # Получаем менеджера или возвращаем 404, если он не найден
-#         manager = get_object_or_404(ManagerTeam, email=user.email)
-
-#         # Возвращаем сотрудников, относящихся к команде текущего менеджера
-#         return Employee.objects.filter(
-#             teams__team=team,  # Используем ManyToMany связь
-#             teams__manager=manager  # Фильтруем по менеджеру
-#         )
 
 
 class EmployeesViewSet(mixins.ListModelMixin,  # Для получения списка сотрудников
@@ -72,7 +55,7 @@ class EmployeesViewSet(mixins.ListModelMixin,  # Для получения сп�
         # user = ManagerTeam.objects.get(id=1)
         
         team = Team.objects.get(slug=team_slug)  # Предполагается, что у команды есть связь с slug
-        manager = ManagerTeam.objects.get(id=2)  # Предполагается, что у менеджера есть связь с пользователем
+        manager = ManagerTeam.objects.get(id=1)  # Предполагается, что у менеджера есть связь с пользователем
 
         # Возвращаем сотрудников, относящихся к команде текущего менеджера
         return Employee.objects.filter(
@@ -162,65 +145,39 @@ class MetricViewSet(viewsets.ViewSet):
 
 
 class TeamCountEmployeeViewSet(viewsets.ViewSet):
-    def create(self, request, team_slug):
-        if request.method != 'POST':
-            return Response({"error": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-        request_serializer = TeamMetricsRequestSerializer(data=request.data)
-
-        if request_serializer.is_valid():
-            start_period = request_serializer.validated_data['startPeriod']
-            end_period = request_serializer.validated_data['endPeriod']
-
-            return self.get_team_employee_data(team_slug, start_period, end_period)
-
-        return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def get_team_employee_data(self, team_slug, start_period, end_period):
+    def list(self, request, *args, **kwargs):
         dashboard = []
-
+        team_slug = kwargs.get('team_slug')
         # Получаем команду по слагу
         try:
             team = EmployeeTeam.objects.get(team__slug=team_slug)
             employees = team.employee.all()  # Получаем всех сотрудников команды
 
             # Преобразуем даты начала и окончания
-            start_date, end_date = self.convert_to_date(start_period, end_period)
 
             # Получаем количество сотрудников, Bus факторов и Key People
             number_of_employees = employees.count()
             number_of_bus_factors = EmployeeBusFactor.objects.filter(
                 employee__in=employees,
-                add_date__range=[start_date, end_date]
             ).count()
             number_of_key_people = EmployeeKeyPeople.objects.filter(
                 employee__in=employees,
-                add_date__range=[start_date, end_date]
             ).count()
 
             # Добавляем результаты в dashboard
-            dashboard.append({
-                "period": {
-                    "month": month_name[start_date.month],
-                    "year": str(start_date.year)
-                },
+            dashboard = {
                 "numberOfEmployee": str(number_of_employees),
                 "numberOfBusFactor": str(number_of_bus_factors),
-                "numberOfKeyPeople": str(number_of_key_people)
-            })
-
-            return Response({"dashboard": dashboard}, status=status.HTTP_200_OK)
+                "numberOfKeyPeople": str(number_of_key_people),
+            }
+            serializer = TeamSkillSerializer(dashboard)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
         except EmployeeTeam.DoesNotExist:
             return Response({"error": "Team not found."}, status=status.HTTP_404_NOT_FOUND)
 
-    def convert_to_date(self, start_period, end_period):
-        start_date = datetime.strptime(f"{start_period['year']}-{start_period['month']}-09", "%Y-%B-%d").date()
-        end_date = datetime.strptime(f"{end_period['year']}-{end_period['month']}-09", "%Y-%B-%d").date()
-        return start_date, end_date
 
-
-#################################
 class TeamMetricViewSet(viewsets.ViewSet):
     def create(self, request, team_slug, metric_type):
         request_serializer = TeamMetricsRequestSerializer(data=request.data)
