@@ -97,6 +97,10 @@ class EmployeeAssesmentSkill(models.Model):
     )
     assesment = models.IntegerField(
         default=0,
+        validators=(
+            MinValueValidator(0),
+            MaxValueValidator(100)
+        ),
         verbose_name='Оценка навыка сотрудника',
     )
 
@@ -147,8 +151,12 @@ class EmployeeDevelopmentPlan(models.Model):
         verbose_name='План развития',
     )
     performance_score = models.DecimalField(
-        max_digits=5,
+        max_digits=10,
         decimal_places=2,
+        validators=(
+            MinValueValidator(0),
+            MaxValueValidator(10)
+        ),
         verbose_name='Процент развития',
     )
     add_date = models.DateField(
@@ -211,6 +219,10 @@ class EmployeeEngagement(models.Model):
         verbose_name='Вовлеченность',
     )
     performance_score = models.IntegerField(
+        validators=(
+            MinValueValidator(0),
+            MaxValueValidator(10)
+        ),
         verbose_name='Уровень вовлеченности сотрудника',
     )
     add_date = models.DateField(

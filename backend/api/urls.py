@@ -6,8 +6,6 @@ from api.views import (
     TeamMetricViewSet, TeamCountEmployeeViewSet,
     TeamIndividualCompetenciesViewSet,
     CompetencyLevelViewSet,
-    # TeamSkillViewSet,
-    # IndividualSkillViewSet,
     SkillLevelViewSet,
 )
 
@@ -24,7 +22,7 @@ router_v1.register(r'teams/(?P<team_slug>[\w-]+)/(?P<metric_type>development_pla
 router_v1.register(r'teams/(?P<team_slug>[\w-]+)/individual_competencies(?:/(?P<employee_id>\d+))?', TeamIndividualCompetenciesViewSet, basename='individual_competencies')
 router_v1.register(
     r'teams/(?P<team_slug>[\w-]+)/competencies_level(?:/(?P<employee_id>\d+))?',
-    CompetencyLevelViewSet,  # Новый ViewSet для получения уровней компетенций
+    CompetencyLevelViewSet,
     basename='competency_level'
 )
 router_v1.register(r'teams/(?P<team_slug>[\w-]+)/skills', TeamIndividualSkillsViewSet, basename='skills')
