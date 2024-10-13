@@ -99,7 +99,6 @@ class EmployeeSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'position', 'worker', 'grade', 'key_people',
             'bus_factor', 'education', 'assesmentOfPotention', 'skill',
-            # 'length_people', 'length_key_people', 'length_bus_factor',
         )
 
     def get_worker(self, obj):
@@ -184,9 +183,6 @@ class CompetencyLevelRequestSerializer(serializers.Serializer):
     competencyId = serializers.IntegerField()
 
 
-
-    
-
 class MetricResponseSerializer(serializers.Serializer):
     period = serializers.DictField()
     performance = serializers.CharField()
@@ -199,7 +195,6 @@ class TeamMetricsResponseSerializer(serializers.Serializer):
     numberOfKeyPeople = serializers.CharField()
 
 
-#################################
 class SkillSerializer(serializers.ModelSerializer):
     skillId = serializers.IntegerField(source='id')
     skillName = serializers.CharField(source='skill_name')
@@ -217,14 +212,6 @@ class TeamSkillSerializer(serializers.Serializer):
     numberOfKeyPeople = serializers.CharField(max_length=10)
 
 
-class TeamSkillAverageSerializer(serializers.Serializer):
-    skillDomen = serializers.CharField()
-    skillId = serializers.IntegerField()
-    skillName = serializers.CharField()
-    plannedResult = serializers.FloatField()
-    actualResult = serializers.FloatField()
-
-
 class IndividualSkillAverageSerializer(serializers.Serializer):
     skillDomen = serializers.CharField()
     skillId = serializers.IntegerField()
@@ -234,5 +221,3 @@ class IndividualSkillAverageSerializer(serializers.Serializer):
 
 class SkillLevelRequestSerializer(serializers.Serializer):
     skillId = serializers.IntegerField()
-
-#################################

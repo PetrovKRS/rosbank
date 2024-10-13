@@ -27,14 +27,11 @@ from yaml import serialize
 from .serializers import (
     EmployeeSerializer,
     IndividualDevelopmentPlanRequestSerializer,
-    TeamMetricsResponseSerializer,
     TeamMetricsRequestSerializer,
     SkillDomenRequestSerializer,
     MetricResponseSerializer,
     CompetencyLevelRequestSerializer,
-    SkillLevelRequestSerializer,
-    TeamSkillAverageSerializer,
-    IndividualSkillAverageSerializer, TeamSkillSerializer,
+    SkillLevelRequestSerializer, TeamSkillSerializer,
 )
 
 from rest_framework.response import Response
@@ -55,7 +52,7 @@ class EmployeesViewSet(mixins.ListModelMixin,  # Для получения сп�
         # user = ManagerTeam.objects.get(id=1)
         
         team = Team.objects.get(slug=team_slug)  # Предполагается, что у команды есть связь с slug
-        manager = ManagerTeam.objects.get(id=1)  # Предполагается, что у менеджера есть связь с пользователем
+        manager = ManagerTeam.objects.get(id=2)  # Предполагается, что у менеджера есть связь с пользователем
 
         # Возвращаем сотрудников, относящихся к команде текущего менеджера
         return Employee.objects.filter(
