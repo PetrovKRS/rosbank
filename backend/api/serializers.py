@@ -232,3 +232,78 @@ class TeamMetricsResponseSerializer(serializers.Serializer):
     numberOfEmployee = serializers.CharField()
     numberOfBusFactor = serializers.CharField()
     numberOfKeyPeople = serializers.CharField()
+    
+    
+class EmployeeCompetencySerializer(serializers.ModelSerializer):
+    employeeId = serializers.IntegerField(source='employee.id', read_only=True)
+    skillDomen = serializers.SerializerMethodField()
+    assessment = serializers.SerializerMethodField()
+    color = serializers.SerializerMethodField()
+
+    class Meta:
+        model = EmployeeCompetency
+        fields = ['employeeId', 'skillDomen', 'assessment', 'color']
+
+    def get_skillDomen(self, obj):
+        """
+        Получаем тип компетенции и возвращаем его с первой заглавной буквой.
+        """
+        return obj.competency.competency_type.capitalize()
+
+    def get_assessment(self, obj):
+        """
+        Возвращаем уровень компетенции в строковом формате.
+        """
+        return str(obj.competency_level)
+
+    def get_color(self, obj):
+        """
+        Метод для вычисления цвета на основе уровня компетенции.
+        """
+        level = int(obj.competency_level)
+        if level <= 33:
+            return "red"
+        elif 34 <= level <= 66:
+            return "yellow"
+        elif level >= 67:
+            return "green"
+        else:
+            raise ValueError(f"Invalid competency level: {obj.competency_level}")
+        
+
+class PeriodSerializer(serializers.Serializer):
+    month = serializers.CharField()
+    year = serializers.IntegerField()
+
+class MetricDashboardEntrySerializer(serializers.Serializer):
+    period = PeriodSerializer()
+    performance = serializers.CharField()
+
+class TeamMetricResponseSerializer(serializers.Serializer):
+    dashboard = MetricDashboardEntrySerializer(many=True)
+    completionForToday = serializers.CharField()
+    
+class PeriodSerializer(serializers.Serializer):
+    month = serializers.CharField()
+    year = serializers.CharField()
+
+class TeamEmployeeDashboardSerializer(serializers.Serializer):
+    period = PeriodSerializer()
+    numberOfEmployee = serializers.CharField()
+    numberOfBusFactor = serializers.CharField()
+    numberOfKeyPeople = serializers.CharField()
+    
+    
+class CompetencySerializer(serializers.Serializer):
+    competencyId = serializers.IntegerField(source='competency.id')
+    skillDomen = serializers.SerializerMethodField()
+    competencyName = serializers.CharField(source='competency.competency_name')
+    plannedResult = serializers.CharField(source='planned_result')
+    actualResult = serializers.SerializerMethodField()
+
+    def get_skillDomen(self, obj):
+        # Возвращаем тип компетенции с заглавной буквы
+        return obj.competency.competency_type.capitalize()
+
+    def get_actualResult(self, obj):
+        return f"{obj.actual_result:.1f}"
