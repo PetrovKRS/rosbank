@@ -5,7 +5,8 @@ from api.views import (
     MetricViewSet, EmployeesViewSet,
     TeamMetricViewSet, TeamCountEmployeeViewSet,
     TeamIndividualCompetenciesViewSet,
-    CompetencyLevelViewSet
+    CompetencyLevelViewSet, TeamSkillViewSet,
+    IndividualSkillViewSet, SkillLevelViewSet,
 )
 
 from .views import DevelopmentPlan
@@ -28,7 +29,11 @@ router_v1.register(
     CompetencyLevelViewSet,  # Новый ViewSet для получения уровней компетенций
     basename='competency_level'
 )
+router_v1.register(r'teams/(?P<team_slug>[\w-]+)/skills/', TeamSkillViewSet, basename='teams-skills-avg')
+router_v1.register(r'teams/media/individual-skills/', IndividualSkillViewSet, basename='individual')
+router_v1.register(r'teams/(?P<team_slug>[\w-]+)/skills/level', SkillLevelViewSet, basename='skill-level')
 
 urlpatterns = [
     path('v1/', include(router_v1.urls)),
+    # path('teams/media/individual-skills/', IndividualSkillViewSet.as_view({'post': 'get_individual_skills'}), name='individual-average-skills'),
 ]

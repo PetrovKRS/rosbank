@@ -26,11 +26,12 @@ from .serializers import (
     # DevelopmentPlanSerializer,
     IndividualDevelopmentPlanRequestSerializer,
     TeamMetricsResponseSerializer,
-    SkillAssessmentRequestSerializer,
+    # SkillAssessmentRequestSerializer,
     TeamMetricsRequestSerializer, 
     SkillDomenRequestSerializer, 
     MetricResponseSerializer,
-    CompetencyLevelRequestSerializer   
+    CompetencyLevelRequestSerializer,
+    SkillLevelRequestSerializer,
 )
 
 from rest_framework.response import Response
@@ -349,7 +350,7 @@ class CompetencyLevelViewSet(viewsets.ViewSet):
             employee__in=employees,
             competency__id=competency_id,
         )
-        
+
         # Если компетенций нет
         if not employee_competencies.exists():
             return Response({"data": []}, status=status.HTTP_200_OK)
@@ -392,13 +393,15 @@ class CompetencyLevelViewSet(viewsets.ViewSet):
 
 class TeamSkillViewSet(viewsets.ViewSet):
 
-    def get_average_skills(self, request):
+    def create(self, request, team_slug):
+    # def get_average_skills(self, request, team_slug):
         skill_domen = request.data.get("skillDomen")
 
         if not skill_domen:
             return Response({"error": "skillDomen is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         skills = Skill.objects.filter(skill_type=skill_domen)
+        team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
         data = []
 
         for skill in skills:
@@ -451,5 +454,71 @@ class IndividualSkillViewSet(viewsets.ViewSet):
 
         return Response({"data": data}, status=status.HTTP_200_OK)
 
-        
+
+class SkillLevelViewSet(viewsets.ViewSet):
+    """
+    ViewSet для получения уровня навыков сотрудников.
+    """
+
+    def create(self, request, team_slug, employee_id=None):
+        if request.method != 'POST':
+            return Response({"error": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        # Валидация данных запроса
+        request_serializer = SkillLevelRequestSerializer(data=request.data)
+        if not request_serializer.is_valid():
+            return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Получаем данные из запроса
+        skill_id = request_serializer.validated_data['skillId']
+        team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
+
+        # Получаем сотрудников команды
+        employees = self.get_employees(team, employee_id)
+
+        # Фильтруем компетенции сотрудников
+        employee_skills = EmployeeSkill.objects.filter(
+            employee__in=employees,
+            skill__id=skill_id,
+        )
+
+        # Если компетенций нет
+        if not employee_skills.exists():
+            return Response({"data": []}, status=status.HTTP_200_OK)
+
+        # Формируем данные для ответа
+        data = self.prepare_skill_data(employee_skills)
+        return Response({"data": data}, status=status.HTTP_200_OK)
+
+    def get_employees(self, team, employee_id):
+        """Получаем сотрудников команды, фильтруя по employee_id, если передан."""
+        return team.employee.filter(id=employee_id) if employee_id else team.employee.all()
+
+    def prepare_skill_data(self, employee_skills):
+        """Подготавливаем данные для ответа."""
+        data = []
+        for emp_skill in employee_skills:
+            data.append({
+                "employeeId": emp_skill.employee.id,
+                "skillDomen": emp_skill.skill.skill_type.capitalize(),
+                "assessment": str(emp_skill.skill_level),
+                "color": self.get_color_based_on_assessment(emp_skill.skill_level)
+            })
+        return data
+
+    def get_color_based_on_assessment(self, skill_level):
+        """
+        Метод для определения цвета в зависимости от уровня компетенции.
+        """
+        level = int(skill_level)  # Преобразуем строковый уровень в число
+
+        if level <= 33:
+            return "red"
+        elif 34 <= level <= 66:
+            return "yellow"
+        elif level >= 67:
+            return "green"
+        else:
+            raise ValueError(f"Invalid skill level: {skill_level}")
+
 # НАДО БУДЕТСДЕЛАТЬ ЧТОБЫ ВОЗВРАТ БЫЛ НЕ return Response({"data": response_data} А ЧЕРЕЗ СЕРИАЛИЗАТОР ВО ВСЕХ ВЬЮ 

@@ -35,16 +35,16 @@ class WorkersSerializer(serializers.ModelSerializer):
         )
 
 
-class SkillSerializer(serializers.ModelSerializer):
-    """ Сериализатор для навыков сотрудника. """
-
-    skill = serializers.CharField(source='skill.skill_name')
-
-    class Meta:
-        model = EmployeeSkill
-        fields = (
-            'skill', 'skill_level'
-        )
+# class SkillSerializer(serializers.ModelSerializer):
+#     """ Сериализатор для навыков сотрудника. """
+#
+#     skill = serializers.CharField(source='skill.skill_name')
+#
+#     class Meta:
+#         model = EmployeeSkill
+#         fields = (
+#             'skill', 'skill_level'
+#         )
 
 
 class CompetencySerializer(serializers.ModelSerializer):
@@ -169,30 +169,6 @@ class TeamMetricsRequestSerializer(serializers.Serializer):
     )
 
 
-class PeriodSerializer(serializers.Serializer):
-    month = serializers.CharField(max_length=20)
-    year = serializers.IntegerField()
-
-
-class SkillAssessmentRequestSerializer(serializers.Serializer):
-    employeeIds = serializers.ListField(child=serializers.CharField())
-    skillDomen = serializers.CharField(max_length=50)
-    startPeriod = PeriodSerializer()
-    endPeriod = PeriodSerializer()
-
-
-class SkillDataSerializer(serializers.Serializer):
-    skillId = serializers.IntegerField()
-    skillName = serializers.CharField(max_length=100)
-    assesment = serializers.IntegerField()
-
-
-class TeamSkillAssessmentResponseSerializer(serializers.Serializer):
-    period = PeriodSerializer()
-    skillsData = serializers.ListField(child=SkillDataSerializer())
-
-
-
 class SkillDomenRequestSerializer(serializers.Serializer):
     skillDomen = serializers.ChoiceField(
         choices=SkillTypeEnum.choices(),
@@ -210,6 +186,9 @@ class CompetencySerializer(serializers.Serializer):
 
 class CompetencyLevelRequestSerializer(serializers.Serializer):
     competencyId = serializers.IntegerField()
+
+
+
     
 
 class MetricResponseSerializer(serializers.Serializer):
@@ -225,18 +204,32 @@ class TeamMetricsResponseSerializer(serializers.Serializer):
 
 
 #################################
-class TeamSkillAssessmentSerializer(serializers.Serializer):
+class SkillSerializer(serializers.ModelSerializer):
+    skillId = serializers.IntegerField(source='id')
+    skillName = serializers.CharField(source='skill_name')
+    plannedResult = serializers.FloatField()
+    actualResult = serializers.FloatField()
+
+    class Meta:
+        model = Skill
+        fields = ['skillId', 'skillName', 'plannedResult', 'actualResult']
+
+class TeamSkillAverageSerializer(serializers.Serializer):
     skillDomen = serializers.CharField()
+    skillId = serializers.IntegerField()
+    skillName = serializers.CharField()
+    plannedResult = serializers.FloatField()
+    actualResult = serializers.FloatField()
 
 
-class IndividualSkillAssessmentSerializer(serializers.Serializer):
-    employeeIds = serializers.ListField(child=serializers.IntegerField())
+class IndividualSkillAverageSerializer(serializers.Serializer):
     skillDomen = serializers.CharField()
+    skillId = serializers.IntegerField()
+    skillName = serializers.CharField()
+    plannedResult = serializers.FloatField()
+    actualResult = serializers.FloatField()
 
-
-class SkillLevelAssessmentSerializer(serializers.Serializer):
-    employeeIds = serializers.ListField(child=serializers.IntegerField())
-    skillDomen = serializers.CharField()
+class SkillLevelRequestSerializer(serializers.Serializer):
     skillId = serializers.IntegerField()
 
 #################################
