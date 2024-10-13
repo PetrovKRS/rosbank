@@ -5,18 +5,23 @@ from core.models import Employee
 class EmployeeFilter(filters.FilterSet):
     position = filters.CharFilter(
         field_name='positions__position__position_name',
-        lookup_expr='exact'
+        lookup_expr='exact',
+        label='Должность сотрудника',
     )
     grade = filters.CharFilter(
         field_name='grades__grade__grade_name',
-        lookup_expr='exact'
+        lookup_expr='exact',
+        label='Класс сотрудника',
     )
     skill = filters.CharFilter(
         field_name='skills__skill__skill_name',
-        lookup_expr='exact'
+        lookup_expr='exact',
+        label='Навык сотрудника',
     )
     competency = filters.CharFilter(
-        field_name='competencies__competency__competency_name'
+        field_name='competencies__competency__competency_name',
+        lookup_expr='exact',
+        label='Компетенция сотрудника',
     )
     last_name = filters.CharFilter(
         field_name='last_name',
