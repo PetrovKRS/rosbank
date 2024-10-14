@@ -23,7 +23,7 @@ class EmployeeFilter(filters.FilterSet):
         lookup_expr='exact',
         label='Компетенция сотрудника',
     )
-    last_name = filters.CharFilter(
+    worker = filters.CharFilter(
         field_name='last_name',
         lookup_expr='icontains',
         label='Фамилия сотрудника',
