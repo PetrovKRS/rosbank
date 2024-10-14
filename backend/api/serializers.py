@@ -75,7 +75,7 @@ class AssesmentOfPotentionSerializer(serializers.Serializer):
     """ Сериализатор для оценки потенциала сотрудника. """
     assesmentLevel = serializers.IntegerField(default=0)
     involvmentLevel = serializers.IntegerField(
-        source='employee_engagements.performance_score', default=0)
+        source='engagements.performance_score', default=0)
 
 
 class EmployeeSerializer(serializers.ModelSerializer):

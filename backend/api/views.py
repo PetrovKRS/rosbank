@@ -42,8 +42,6 @@ from .serializers import (
 from .filters import EmployeeFilter
 
 
-
-
 class EmployeesViewSet(mixins.ListModelMixin,  # Для получения списка сотрудников
                         mixins.RetrieveModelMixin,  # Для получения конкретного сотрудника по ID
                         viewsets.GenericViewSet): 
@@ -54,8 +52,8 @@ class EmployeesViewSet(mixins.ListModelMixin,  # Для получения сп�
     def get_queryset(self):
         team_slug = self.kwargs.get('team_slug')  # Получаем слаг команды
         # user = self.request.user
+
         # user = ManagerTeam.objects.get(id=1)
-        
         team = Team.objects.get(slug=team_slug)  # Предполагается, что у команды есть связь с slug
         manager = ManagerTeam.objects.get(id=2)  # Предполагается, что у менеджера есть связь с пользователем
 
@@ -66,7 +64,7 @@ class EmployeesViewSet(mixins.ListModelMixin,  # Для получения сп�
         )
 
 
-class MetricViewSet(viewsets.ViewSet):
+class MetricViewSet(viewsets.GenericViewSet):
     """ . """
     
     def create(self, request, metric_type, employee_id):

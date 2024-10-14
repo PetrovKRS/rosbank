@@ -22,11 +22,11 @@ class Employee(models.Model):
         default=uuid.uuid4,  # Генерация уникального идентификатора
     )
     first_name = models.CharField(
-        max_length=100,
+        max_length=21,
         verbose_name='Имя',
     )
     last_name = models.CharField(
-        max_length=100,
+        max_length=21,
         verbose_name='Фамилия',
     )
     email = models.EmailField(
@@ -211,11 +211,12 @@ class EmployeeEngagement(models.Model):
     employee = models.OneToOneField(
         Employee,
         on_delete=models.CASCADE,
-        related_name='employee_engagements',
+        related_name='engagements',
     )
     engagement = models.ForeignKey(
         Engagement,
         on_delete=models.CASCADE,
+        related_name='employee_engagements',
         verbose_name='Вовлеченность',
     )
     performance_score = models.IntegerField(
@@ -603,6 +604,36 @@ class Position(models.Model):
 
     def __str__(self):
         return self.position_name
+
+
+class PositionGrade(models.Model):
+
+    position = models.ForeignKey(
+        Position,
+        on_delete=models.CASCADE,
+        related_name='position_grades',
+        verbose_name='Должность',
+    )
+    grade = models.ForeignKey(
+        Grade,
+        on_delete=models.CASCADE,
+        related_name='grade_positions',
+        verbose_name='Грейд',
+    )
+    ate_added = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата добавления грейда к должности'
+    )
+
+    class Meta:
+        verbose_name = 'Грейд сотрудника'
+        verbose_name_plural = 'Грейды сотрудников'
+        ordering = (
+            'position',
+        )
+
+    def __str__(self):
+        return f"{self.employee} - {self.position} ({self.grade})"
 
 
 class EmployeePosition(models.Model):
