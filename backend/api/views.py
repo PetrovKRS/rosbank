@@ -131,11 +131,21 @@ class MetricViewSet(DateConversionMixin, mixins.CreateModelMixin, viewsets.Gener
         return dashboard, last_performance
 
     def group_metrics_by_month(self, employee_metrics):
-        metrics_by_month = {}
-        for metric in employee_metrics:
-            key = (metric.add_date.year, metric.add_date.month)
-            metrics_by_month[key] = metrics_by_month.get(key, 0) + metric.performance_score
-        return metrics_by_month
+    # Группируем метрики по месяцу и вычисляем среднее значение performance_score
+        metrics_by_month = employee_metrics.annotate(
+            year=ExtractYear('add_date'),
+            month=ExtractMonth('add_date')
+        ).values('year', 'month').annotate(
+            average_performance=Avg('performance_score')
+        ).order_by('year', 'month')
+
+        # Преобразуем результаты в словарь с ключом (year, month)
+        metrics_by_month_dict = {
+            (metric['year'], metric['month']): round(metric['average_performance'], 2)
+            for metric in metrics_by_month
+        }
+
+        return metrics_by_month_dict
 
     def get_metric_model(self, metric_type):
         return {
@@ -194,7 +204,7 @@ class TeamCountEmployeeViewSet(DateConversionMixin, mixins.CreateModelMixin, vie
 
         return self.error_response(response_serializer.errors)
 
-
+from django.db.models.functions import ExtractMonth, ExtractYear
 class TeamMetricViewSet(DateConversionMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
     serializer_class = TimePeriodRequestSerializer
     def create(self, request, team_slug, metric_type):
@@ -217,7 +227,7 @@ class TeamMetricViewSet(DateConversionMixin, mixins.CreateModelMixin, viewsets.G
         metrics_by_month = self.get_metrics_by_month(employees, model, start_date, end_date)
 
         dashboard_data = [
-            {"period": {"year": year, "month": month_name[month]}, "performance": str(performance / len(employees))}
+            {"period": {"year": year, "month": month_name[month]}, "performance": str(round(performance / len(employees), 2))}
             for (year, month), performance in metrics_by_month.items()
         ]
 
@@ -240,12 +250,23 @@ class TeamMetricViewSet(DateConversionMixin, mixins.CreateModelMixin, viewsets.G
         }.get(metric_type)
     
     def get_metrics_by_month(self, employees, model, start_date, end_date):
-        metrics_by_month = {}
-        for employee in employees:
-            for metric in model.objects.filter(employee=employee, add_date__range=[start_date, end_date]):
-                key = (metric.add_date.year, metric.add_date.month)
-                metrics_by_month[key] = metrics_by_month.get(key, 0) + metric.performance_score
-        return metrics_by_month
+        # Оптимизированный запрос с использованием annotate и aggregate для суммирования по месяцам
+        metrics_by_month = model.objects.filter(
+            employee__in=employees,
+            add_date__range=[start_date, end_date]
+        ).annotate(
+            year=ExtractYear('add_date'),
+            month=ExtractMonth('add_date')
+        ).values('year', 'month').annotate(
+            total_performance=Sum('performance_score')
+        ).order_by('year', 'month')
+
+        # Преобразуем результаты в словарь с ключом (year, month)
+        metrics_by_month_dict = {
+            (metric['year'], metric['month']): metric['total_performance']
+            for metric in metrics_by_month
+        }
+        return metrics_by_month_dict
 
 
 class TeamIndividualCompetenciesViewSet(DateConversionMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
