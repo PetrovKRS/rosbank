@@ -24,9 +24,9 @@ from django.urls import path, include
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="API Documentation",
+        title="API Documentation R-Bank",
         default_version='v1',
-        description="API documentation for the project",
+        description="Документация для проекта Ros-Bank",
         terms_of_service="https://www.google.com/policies/terms/",
         contact=openapi.Contact(email="your-email@example.com"),
         license=openapi.License(name="BSD License"),

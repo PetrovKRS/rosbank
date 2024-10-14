@@ -24,7 +24,7 @@ from core.models import (
 from .serializers import (
     EmployeeSerializer,
     # DevelopmentPlanSerializer,
-    IndividualDevelopmentPlanRequestSerializer,
+    TimePeriodRequestSerializer,
     TeamMetricsResponseSerializer,
     SkillAssessmentRequestSerializer,
     TeamMetricsRequestSerializer, 
@@ -42,7 +42,7 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from datetime import datetime
 from calendar import month_name
-
+from django.db.models import Sum
 # class EmployeesViewSet(viewsets.ModelViewSet):
 #     serializer_class = EmployeeSerializer
 
@@ -65,8 +65,8 @@ from calendar import month_name
 
 class DateConversionMixin:
     def convert_to_date(self, start_period, end_period):
-        start_date = datetime.strptime(f"{start_period['year']}-{start_period['month']}-13", "%Y-%B-%d").date()
-        end_date = datetime.strptime(f"{end_period['year']}-{end_period['month']}-13", "%Y-%B-%d").date()
+        start_date = datetime.strptime(f"{start_period['year']}-{start_period['month']}-15", "%Y-%B-%d").date()
+        end_date = datetime.strptime(f"{end_period['year']}-{end_period['month']}-15", "%Y-%B-%d").date()
         return start_date, end_date
 
 
@@ -78,17 +78,19 @@ class EmployeesViewSet(mixins.ListModelMixin,
     def get_queryset(self):
         team_slug = self.kwargs.get('team_slug')
         team = get_object_or_404(Team, slug=team_slug)
-        manager = get_object_or_404(ManagerTeam, id=2)  # Замените 2 на ID текущего менеджера
+        manager = get_object_or_404(ManagerTeam, id=2)
 
         return Employee.objects.filter(teams__team=team, teams__manager=manager)
 
 
-class MetricViewSet(DateConversionMixin, viewsets.ViewSet):
-    def create(self, request, metric_type, employee_id):
-        if request.method != 'POST':
-            return self.method_not_allowed_response()
 
-        serializer = IndividualDevelopmentPlanRequestSerializer(data=request.data)
+class MetricViewSet(DateConversionMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
+    serializer_class = TimePeriodRequestSerializer
+
+    def create(self, request, metric_type, employee_id):
+        # Используем встроенный метод для валидации данных через сериализатор
+        serializer = self.get_serializer(data=request.data)
+        
         if not serializer.is_valid():
             return self.error_response(serializer.errors)
 
@@ -109,6 +111,7 @@ class MetricViewSet(DateConversionMixin, viewsets.ViewSet):
 
         return Response(response_data, status=status.HTTP_200_OK)
 
+    
     def get_employee_metrics(self, employee_id, model, start_date, end_date):
         employee_metrics = model.objects.filter(employee__id=employee_id, add_date__range=[start_date, end_date])
 
@@ -147,20 +150,24 @@ class MetricViewSet(DateConversionMixin, viewsets.ViewSet):
         return Response(errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class TeamCountEmployeeViewSet(DateConversionMixin, viewsets.ViewSet):
+class TeamCountEmployeeViewSet(DateConversionMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
+    
+    serializer_class = TimePeriodRequestSerializer
+
     def create(self, request, team_slug):
         if request.method != 'POST':
             return self.method_not_allowed_response()
 
-        request_serializer = TeamMetricsRequestSerializer(data=request.data)
-        if request_serializer.is_valid():
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
             start_date, end_date = self.convert_to_date(
-                request_serializer.validated_data['startPeriod'],
-                request_serializer.validated_data['endPeriod']
+                serializer.validated_data['startPeriod'],
+                serializer.validated_data['endPeriod']
             )
             return self.get_team_employee_data(team_slug, start_date, end_date)
 
-        return self.error_response(request_serializer.errors)
+        return self.error_response(serializer.errors)
 
     def get_team_employee_data(self, team_slug, start_date, end_date):
         team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
@@ -188,15 +195,16 @@ class TeamCountEmployeeViewSet(DateConversionMixin, viewsets.ViewSet):
         return self.error_response(response_serializer.errors)
 
 
-class TeamMetricViewSet(DateConversionMixin, viewsets.ViewSet):
+class TeamMetricViewSet(DateConversionMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
+    serializer_class = TimePeriodRequestSerializer
     def create(self, request, team_slug, metric_type):
-        request_serializer = TeamMetricsRequestSerializer(data=request.data)
-        if not request_serializer.is_valid():
-            return self.error_response(request_serializer.errors)
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            return self.error_response(serializer.errors)
 
         start_date, end_date = self.convert_to_date(
-            request_serializer.validated_data['startPeriod'],
-            request_serializer.validated_data['endPeriod']
+            serializer.validated_data['startPeriod'],
+            serializer.validated_data['endPeriod']
         )
 
         team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
@@ -240,14 +248,16 @@ class TeamMetricViewSet(DateConversionMixin, viewsets.ViewSet):
         return metrics_by_month
 
 
-class TeamIndividualCompetenciesViewSet(viewsets.ViewSet):
+class TeamIndividualCompetenciesViewSet(DateConversionMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
+    serializer_class = SkillDomenRequestSerializer
+    
     def create(self, request, team_slug, employee_id=None):
         if request.method != 'POST':
             return self.method_not_allowed_response()
 
-        request_serializer = SkillDomenRequestSerializer(data=request.data)
-        if request_serializer.is_valid():
-            skill_domen = request_serializer.validated_data['skillDomen']
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            skill_domen = serializer.validated_data['skillDomen']
             team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
 
             competencies = self.get_competencies(team, employee_id, skill_domen)
@@ -255,7 +265,7 @@ class TeamIndividualCompetenciesViewSet(viewsets.ViewSet):
             response_serializer = CompetencySerializer(competencies, many=True, context={'skill_domen': skill_domen})
             return Response({"data": response_serializer.data}, status=status.HTTP_200_OK)
 
-        return self.error_response(request_serializer.errors)
+        return self.error_response(serializer.errors)
 
     def get_competencies(self, team, employee_id, skill_domen):
         filter_kwargs = {
@@ -268,16 +278,18 @@ class TeamIndividualCompetenciesViewSet(viewsets.ViewSet):
         return EmployeeCompetency.objects.filter(**filter_kwargs)
 
 
-class CompetencyLevelViewSet(viewsets.ViewSet):
+class CompetencyLevelViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
+    serializer_class = CompetencyLevelRequestSerializer
+    
     def create(self, request, team_slug, employee_id=None):
         if request.method != 'POST':
             return self.method_not_allowed_response()
 
-        request_serializer = CompetencyLevelRequestSerializer(data=request.data)
-        if not request_serializer.is_valid():
-            return self.error_response(request_serializer.errors)
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            return self.error_response(serializer.errors)
 
-        competency_id = request_serializer.validated_data['competencyId']
+        competency_id = serializer.validated_data['competencyId']
         team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
 
         employees = self.get_employees(team, employee_id)

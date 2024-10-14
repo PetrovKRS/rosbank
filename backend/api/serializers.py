@@ -23,7 +23,7 @@ from rest_framework.validators import UniqueTogetherValidator
 #         token['email'] = user.email  # Например, добавление email в токен
 
 #         return token
-
+from django.db.models import Avg
 
 
 
@@ -72,8 +72,16 @@ class TrainingApplicationSerializer(serializers.ModelSerializer):
 
 class AssesmentOfPotentionSerializer(serializers.Serializer):
     """ Сериализатор для оценки потенциала сотрудника. """
-    assesmentLevel = serializers.CharField(source='grades.grade.grade_name')
+
     involvmentLevel = serializers.CharField(source='employee_engagements.engagement.engagement_name')
+    assesmentLevel = serializers.SerializerMethodField()
+
+    def get_assesmentLevel(self, obj):
+        # Получаем среднюю оценку навыков сотрудника с помощью агрегации
+        average_assessment = obj.assesments_skills.aggregate(Avg('assesment'))['assesment__avg']
+        
+        # Если есть средняя оценка, возвращаем её, иначе возвращаем 0
+        return average_assessment if average_assessment is not None else 0# Или возвращаем 0, если нет оценок
     
 
     
@@ -154,16 +162,13 @@ class MetricRequestSerializer(serializers.Serializer):
 
 
 
-class IndividualDevelopmentPlanRequestSerializer(serializers.Serializer):
+class PeriodSerializer(serializers.Serializer):
+    month = serializers.CharField(required=True)
+    year = serializers.CharField(required=True)
 
-    startPeriod = serializers.DictField(
-        child=serializers.CharField(),
-        required=True
-    )
-    endPeriod = serializers.DictField(
-        child=serializers.CharField(),
-        required=True
-    )
+class TimePeriodRequestSerializer(serializers.Serializer):
+    startPeriod = PeriodSerializer(required=True)
+    endPeriod = PeriodSerializer(required=True)
 
 
 class IndividualDevelopmentPlanResponseSerializer(serializers.Serializer):
