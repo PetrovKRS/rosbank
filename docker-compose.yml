@@ -5,7 +5,6 @@ volumes:
   media:
 
 services:
-
   db:
     image: postgres:14
     env_file: .env
@@ -31,11 +30,11 @@ services:
       DB_PORT: 5432
 
   frontend:
-#    image: petrovkrs/ros_bank_frontend
     build: ./rosbank-frontend/
+    container_name: frontend
     env_file: .env
     volumes:
-      - ./rosbank-frontend/:/app/result_build/
+      - ./rosbank-frontend:/app
     depends_on:
       - backend
 
@@ -47,8 +46,8 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - drf-yasg:/var/html/static/
-      - ./rosbank-frontend/build:/usr/share/nginx/html/
       - static:/var/html/static/
+      - ./rosbank-frontend/dist:/usr/share/nginx/html/
     depends_on:
       - backend
       - frontend
