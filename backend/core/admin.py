@@ -13,7 +13,7 @@ from .models import (
     AssesmentSkill, EmployeeAssesmentSkill,
 )
 
-
+#
 # @admin.register(Employee)
 # class EmployeeAdmin(admin.ModelAdmin):
 #     pass
@@ -22,14 +22,14 @@ from .models import (
 #         'registration_date', 'last_login_date',
 #     )
 
-# @admin.register(AssesmentSkill)
-# class AssesmentSkillAdmin(admin.ModelAdmin):
-#     pass
-#
-#
-# @admin.register(EmployeeAssesmentSkill)
-# class EmployeeAssesmentSkillAdmin(admin.ModelAdmin):
-#     pass
+@admin.register(AssesmentSkill)
+class AssesmentSkillAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(EmployeeAssesmentSkill)
+class EmployeeAssesmentSkillAdmin(admin.ModelAdmin):
+    pass
 
 
 @admin.register(DevelopmentPlan)
@@ -112,13 +112,13 @@ class TeamAdmin(admin.ModelAdmin):
     pass
 
 
-# @admin.register(EmployeeTeam)
-# class EmployeeTeamAdmin(admin.ModelAdmin):
-#     list_display = ('manager', 'team', 'get_employees')
-#
-#     def get_employees(self, obj):
-#         return ", ".join([employee.__str__() for employee in obj.employee.all()])
-#     get_employees.short_description = 'Сотрудники'
+@admin.register(EmployeeTeam)
+class EmployeeTeamAdmin(admin.ModelAdmin):
+    list_display = ('manager', 'team', 'get_employees')
+
+    def get_employees(self, obj):
+        return ", ".join([employee.__str__() for employee in obj.employee.all()])
+    get_employees.short_description = 'Сотрудники'
 
 
 @admin.register(Position)

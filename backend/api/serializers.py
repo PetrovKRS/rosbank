@@ -1,4 +1,5 @@
 from django.template.defaultfilters import length
+from django.db.models import Avg
 from rest_framework import serializers
 from users.models import ManagerTeam
 from core.models import (
@@ -7,7 +8,7 @@ from core.models import (
     BusFactor, EmployeeBusFactor, Grade, EmployeeGrade, KeySkill, EmployeeKeySkill,
     Team, EmployeeTeam, Position, EmployeePosition, Competency, PositionCompetency,
     TeamPosition, EmployeeCompetency, Skill, EmployeeSkill, SkillForCompetency,
-    ExpectedSkill, EmployeeExpectedSkill, SkillTypeEnum, Employee
+    ExpectedSkill, EmployeeExpectedSkill, SkillTypeEnum, Employee, EmployeeAssesmentSkill,
 )
 from django.urls import reverse
 from rest_framework.validators import UniqueTogetherValidator
@@ -36,18 +37,6 @@ class WorkersSerializer(serializers.ModelSerializer):
         )
 
 
-# class SkillSerializer(serializers.ModelSerializer):
-#     """ Сериализатор для навыков сотрудника. """
-#
-#     skill = serializers.CharField(source='skill.skill_name')
-#
-#     class Meta:
-#         model = EmployeeSkill
-#         fields = (
-#             'skill', 'skill_level'
-#         )
-
-
 class CompetencySerializer(serializers.ModelSerializer):
     """ Сериализатор для компетенций сотрудника. """
 
@@ -73,9 +62,14 @@ class TrainingApplicationSerializer(serializers.ModelSerializer):
 
 class AssesmentOfPotentionSerializer(serializers.Serializer):
     """ Сериализатор для оценки потенциала сотрудника. """
-    assesmentLevel = serializers.IntegerField(default=0)
+    assesmentLevel = serializers.SerializerMethodField()
     involvmentLevel = serializers.IntegerField(
         source='engagements.performance_score', default=0)
+
+    def get_assesmentLevel(self, obj):
+        average_assessment = obj.assesments_skills.aggregate(Avg('assesment'))['assesment__avg']
+        # Если есть средняя оценка, возвращаем её, иначе возвращаем 0
+        return average_assessment if average_assessment is not None else 0
 
 
 class EmployeeSerializer(serializers.ModelSerializer):

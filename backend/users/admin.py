@@ -45,6 +45,12 @@ class EmployeeDevelopmentPlanInline(admin.TabularInline):
     model = EmployeeDevelopmentPlan
     extra = 1
 
+
+class EmployeeAssesmentInline(admin.TabularInline):
+    model = EmployeeEngagement
+    extra = 1
+
+
 class EmployeeEngagementInline(admin.TabularInline):
     model = EmployeeEngagement
     extra = 1
