@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - VGD_serv
-#      - develop_1
 
 jobs:
+####################################   BACKEND TESTS   ####################################
   tests:
     runs-on: ubuntu-latest
 
@@ -52,18 +52,16 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/ros_bank_backend:latest
 
+
+#####################################   FRONTEND   ####################################
+
   # Build frontend and push to DockerHub and clone repository from any DockerHub Account
   build_frontend_and_push_to_docker_hub:
     runs-on: ubuntu-latest
-
     steps:
       # Checkout frontend repository
       - name: Checkout frontend repository
         run: git clone https://github.com/hackathon-Rosbank/rosbank-frontend.git frontend
-
-      # Output current directory contents for debugging
-      - name: List directory contents after clone
-        run: ls -al
 
       # Set up Node.js for frontend
       - name: Set up Node.js for frontend
@@ -81,18 +79,23 @@ jobs:
         run: npm run build
         working-directory: ./frontend
 
+      # Устанавливаем глобально http-server для раздачи статических файлов
+      - name: Install http-server
+        run: npm install -g http-server
+        working-directory: ./frontend
+
+      # Команда для запуска http-server, раздающего статические файлы из /app/dist
+      - name: Serve frontend with http-server
+        run: npx -y http-server -p 8000 ./frontend/dist
+
+#      # Copy frontend build to backend public directory
+#      - name: Copy frontend build to backend
+#        run: |
+#          mkdir -p ./backend/public
+#          cp -r ./frontend/dist/* ./backend/public/
+
       - name: List contents
         run: ls -al
-
-        # Copy frontend build to backend public directory
-      - name: Copy frontend build to backend
-        run: |
-          mkdir -p ./backend/public
-          cp -r ./frontend/dist/* ./backend/public/
-
-      - name: List contents
-        run: ls -al
-#        working-directory: frontend
 
       # Установка Docker Buildx
       - name: Set up Docker Buildx
@@ -104,10 +107,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-
-      # Проверка содержимого директории для отладки
-      - name: List directory contents after checkout
-        run: ls -al
 
       # Сборка Docker-образа для фронтенда и загрузка на DockerHub
       - name: Build and push frontend Docker image

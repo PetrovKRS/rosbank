@@ -32,8 +32,9 @@ services:
   frontend:
     image: petrovkrs/ros_bank_frontend
     env_file: .env
+    command: cp -r /app/dist/. /frontend_static/
     volumes:
-      - ./frontend:/app
+      - static:/var/html/frontend_static
     depends_on:
       - backend
 
@@ -46,7 +47,7 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - drf-yasg:/var/html/static/
       - static:/var/html/static/
-      - ./frontend/dist:/usr/share/nginx/html/
+#      - ./frontend/dist:/usr/share/nginx/html/
     depends_on:
       - backend
       - frontend
