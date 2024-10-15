@@ -61,11 +61,11 @@ jobs:
           node-version: 18
       - name: Install dependencies
         run: |
-          cd rosbank-frontend/
+          cd ./rosbank-frontend/
           npm ci
       - name: Test frontend
         run: |
-          cd rosbank-frontend/
+          cd ./rosbank-frontend/
           npm run test
 
   build_frontend_and_push_to_docker_hub:
