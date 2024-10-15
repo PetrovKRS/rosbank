@@ -80,15 +80,15 @@ jobs:
         run: npm run build
         working-directory: frontend
 
-      - name: list directory contents after build
-        run: cd frontend && ls -al
+#      - name: list directory contents after build
+#        run: cd frontend && ls -al
 
         # Copy frontend build to backend public directory
       - name: Copy frontend build to backend
         run: |
           mkdir -p ./backend/public
           cp -r ./dist/* ./backend/public/
-        working-directory: frontend
+#        working-directory: frontend
 
   build_frontend_and_push_to_docker_hub:
     name: Push frontend Docker image to DockerHub
@@ -105,13 +105,13 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: List contents
-        run: ls -la
-      - name: Push to DockerHub
-        uses: docker/build-push-action@v4
-        with:
-          context: frontend
-          push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/ros_bank_frontend:latest
+        run: cd ../ && ls -la
+#      - name: Push to DockerHub
+#        uses: docker/build-push-action@v4
+#        with:
+#          context: frontend
+#          push: true
+#          tags: ${{ secrets.DOCKER_USERNAME }}/ros_bank_frontend:latest
 
 #  deploy:
 #    runs-on: ubuntu-latest
