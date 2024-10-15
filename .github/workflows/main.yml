@@ -62,7 +62,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd ./rosbank-frontend/
-          npm ci
+          npm ci  # Эта команда будет работать только при наличии package-lock.json
       - name: Test frontend
         run: |
           cd ./rosbank-frontend/
