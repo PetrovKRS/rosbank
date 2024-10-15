@@ -30,12 +30,12 @@ services:
       DB_PORT: 5432
 
   frontend:
-    image: petrovkrs/ros_bank_frontend
+#    image: petrovkrs/ros_bank_frontend
+    build: ./frontend
     env_file: .env
     command:
       - cp -r /app/dist/. /frontend_static/
-      - npm install -g http-server
-      - npx -y http-server -p 8000 ./frontend/dist
+      - bash frontend.sh
     volumes:
       - static:/var/html/frontend_static
     depends_on:
@@ -50,7 +50,7 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - drf-yasg:/var/html/static/
       - static:/var/html/static/
-#      - ./frontend/dist:/usr/share/nginx/html/
+      - ./frontend/dist:/usr/share/nginx/html/
     depends_on:
       - backend
       - frontend
