@@ -30,8 +30,7 @@ services:
       DB_PORT: 5432
 
   frontend:
-    build: ./rosbank-frontend/
-    container_name: frontend
+    image: petrovkrs/ros_bank_frontend
     env_file: .env
     volumes:
       - ./rosbank-frontend:/app
