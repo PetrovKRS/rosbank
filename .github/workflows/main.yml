@@ -62,7 +62,7 @@ jobs:
 
       # Output current directory contents for debugging
       - name: List directory contents after clone
-        run: ls -al
+        run: cd frontend && ls -al
 
       # Set up Node.js for frontend
       - name: Set up Node.js for frontend
