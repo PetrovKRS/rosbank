@@ -94,25 +94,40 @@ jobs:
 #        working-directory: frontend
 
   build_frontend_and_push_to_docker_hub:
-    name: Push frontend Docker image to DockerHub
+    name: Build frontend and push Docker image to DockerHub
     runs-on: ubuntu-latest
-    needs: frontend_tests
+    needs: frontend_tests  # Зависимость от успешного выполнения frontend_tests
     steps:
+      # Шаг 1: Клонирование репозитория
+      - name: Check out the repo
+        uses: actions/checkout@v3
+
+      # Шаг 2: Установка Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
+
+      # Шаг 3: Логин в DockerHub
       - name: Login to Docker
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: List contents
-        run: ls -al && cd ../ && ls -la && cd ../ && ls -la
-#      - name: Push to DockerHub
+
+      # Шаг 4: Проверка содержимого директории для отладки
+      - name: List directory contents after checkout
+        run: ls -al
+
+      # Шаг 5: Сборка Docker-образа для фронтенда и загрузка на DockerHub
+#      - name: Build and push frontend Docker image
 #        uses: docker/build-push-action@v4
 #        with:
-#          context: frontend
-#          push: true
-#          tags: ${{ secrets.DOCKER_USERNAME }}/ros_bank_frontend:latest
+#          context: ./frontend   # Контекст сборки — директория frontend
+#          push: true            # Отправляем образ на DockerHub
+#          tags: ${{ secrets.DOCKER_USERNAME }}/ros_bank_frontend:latest  # Тег для образа
+#
+#      # Шаг 6: Проверка содержимого директории после сборки (опционально)
+#      - name: List directory contents after build
+#        run: ls -al
 
 #  deploy:
 #    runs-on: ubuntu-latest
