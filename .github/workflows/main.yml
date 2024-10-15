@@ -62,7 +62,7 @@ jobs:
 
       # Output current directory contents for debugging
       - name: List directory contents after clone
-        run: cd frontend && ls -al
+        run: cd ./frontend && ls -al && cd ../
 
       # Set up Node.js for frontend
       - name: Set up Node.js for frontend
@@ -73,12 +73,12 @@ jobs:
       # Install frontend dependencies
       - name: Install frontend dependencies
         run: npm ci
-        working-directory: frontend
+        working-directory: ./frontend
 
       # Build frontend
       - name: Build frontend
         run: npm run build
-        working-directory: frontend
+        working-directory: ./frontend
 
         # Copy frontend build to backend public directory
       - name: Copy frontend build to backend
@@ -102,13 +102,13 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: List contents
-        run: ls -la
-      - name: Push to DockerHub
-        uses: docker/build-push-action@v4
-        with:
-          context: frontend
-          push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/ros_bank_frontend:latest
+        run: cd backend && ls -la && cd ../../ && ls -la
+#      - name: Push to DockerHub
+#        uses: docker/build-push-action@v4
+#        with:
+#          context: frontend
+#          push: true
+#          tags: ${{ secrets.DOCKER_USERNAME }}/ros_bank_frontend:latest
 
 #  deploy:
 #    runs-on: ubuntu-latest
