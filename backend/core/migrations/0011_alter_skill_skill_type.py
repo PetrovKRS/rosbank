@@ -14,6 +14,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='skill',
             name='skill_type',
-            field=models.CharField(choices=[('hard', 'Hard'), ('soft', 'Soft')], default=core.models.SkillTypeEnum['HARD'], max_length=4, verbose_name='Тип навыка'),
+            field=models.CharField(
+                choices=[('hard', 'Hard'), ('soft', 'Soft')],
+                default=core.models.SkillTypeEnum['HARD'],
+                max_length=4,
+                verbose_name='Тип навыка',
+            ),
         ),
     ]

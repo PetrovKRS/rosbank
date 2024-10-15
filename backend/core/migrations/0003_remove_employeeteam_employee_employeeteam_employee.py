@@ -17,6 +17,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="employeeteam",
             name="employee",
-            field=models.ManyToManyField(related_name="teams", to="core.employee"),
+            field=models.ManyToManyField(
+                related_name="teams", to="core.employee"
+            ),
         ),
     ]

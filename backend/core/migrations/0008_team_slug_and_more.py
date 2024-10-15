@@ -14,7 +14,10 @@ class Migration(migrations.Migration):
             model_name="team",
             name="slug",
             field=models.SlugField(
-                default=1, max_length=255, unique=True, verbose_name="Слаг команды"
+                default=1,
+                max_length=255,
+                unique=True,
+                verbose_name="Слаг команды",
             ),
             preserve_default=False,
         ),

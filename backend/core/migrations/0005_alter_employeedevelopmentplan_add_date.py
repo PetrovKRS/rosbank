@@ -14,7 +14,8 @@ class Migration(migrations.Migration):
             model_name="employeedevelopmentplan",
             name="add_date",
             field=models.DateField(
-                db_index=True, verbose_name="Дата добавления сотрудника в план развития"
+                db_index=True,
+                verbose_name="Дата добавления сотрудника в план развития",
             ),
         ),
     ]

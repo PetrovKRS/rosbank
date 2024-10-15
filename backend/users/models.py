@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import models
 from django.core.validators import RegexValidator
 
+
 class ManagerTeamManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -25,20 +26,24 @@ class ManagerTeamManager(BaseUserManager):
 
 
 class ManagerTeam(AbstractBaseUser):
-    """ Модель менеджера. """
-    email = models.EmailField(
-        unique=True,
-        verbose_name='E-mail'
-    )
-    first_name = models.CharField(max_length=50, verbose_name='Имя')  # Добавляем поле first_name
-    last_name = models.CharField(max_length=50, verbose_name='Фамилия')  # Добавляем поле last_name
+    """Модель менеджера."""
+
+    email = models.EmailField(unique=True, verbose_name='E-mail')
+    first_name = models.CharField(
+        max_length=50, verbose_name='Имя'
+    )  # Добавляем поле first_name
+    last_name = models.CharField(
+        max_length=50, verbose_name='Фамилия'
+    )  # Добавляем поле last_name
     password = models.CharField(
         max_length=100,
         verbose_name='Пароль',
-        validators=(RegexValidator(
-            regex=r'^.{4,}$',
-            message='Пароль должен быть не менее 4-х символов'
-        ),)
+        validators=(
+            RegexValidator(
+                regex=r'^.{4,}$',
+                message='Пароль должен быть не менее 4-х символов',
+            ),
+        ),
     )
 
     is_active = models.BooleanField(default=True)
@@ -48,7 +53,10 @@ class ManagerTeam(AbstractBaseUser):
     objects = ManagerTeamManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name']  # Добавляем обязательные поля
+    REQUIRED_FIELDS = [
+        'first_name',
+        'last_name',
+    ]  # Добавляем обязательные поля
 
     class Meta:
         verbose_name = 'Менеджер'
@@ -56,7 +64,7 @@ class ManagerTeam(AbstractBaseUser):
 
     def __str__(self):
         return self.email
-    
+
     def has_perm(self, perm, obj=None):
         """
         Проверка разрешений для пользователя.
@@ -67,7 +75,7 @@ class ManagerTeam(AbstractBaseUser):
         # Проверяем, является ли пользователь суперпользователем
         if self.is_superuser:
             return True
-        
+
         # Логика проверки разрешений
         # Например, можно использовать атрибуты или группы пользователя для проверки
         # В качестве примера можно сделать следующее:

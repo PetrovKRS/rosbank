@@ -13,12 +13,20 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='skill',
             name='skill_type',
-            field=models.CharField(choices=[('hard', 'Hard'), ('soft', 'Soft')], default=2, max_length=4, verbose_name='Тип навыка'),
+            field=models.CharField(
+                choices=[('hard', 'Hard'), ('soft', 'Soft')],
+                default=2,
+                max_length=4,
+                verbose_name='Тип навыка',
+            ),
             preserve_default=False,
         ),
         migrations.AlterField(
             model_name='skill',
             name='employee_count',
-            field=models.IntegerField(default=0, verbose_name='Количество сотрудников с данным навыком'),
+            field=models.IntegerField(
+                default=0,
+                verbose_name='Количество сотрудников с данным навыком',
+            ),
         ),
     ]

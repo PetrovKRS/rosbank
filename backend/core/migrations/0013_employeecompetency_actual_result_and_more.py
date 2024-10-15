@@ -13,11 +13,15 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="employeecompetency",
             name="actual_result",
-            field=models.FloatField(default=0.0, verbose_name="Фактическая оценка"),
+            field=models.FloatField(
+                default=0.0, verbose_name="Фактическая оценка"
+            ),
         ),
         migrations.AddField(
             model_name="employeecompetency",
             name="planned_result",
-            field=models.FloatField(default=0.0, verbose_name="Плановая оценка"),
+            field=models.FloatField(
+                default=0.0, verbose_name="Плановая оценка"
+            ),
         ),
     ]
