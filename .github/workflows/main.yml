@@ -64,8 +64,6 @@ jobs:
       - name: List directory contents after clone
         run: ls -al
 
-#      - uses: actions/checkout@v3
-
       # Set up Node.js for frontend
       - name: Set up Node.js for frontend
         uses: actions/setup-node@v3
@@ -80,7 +78,7 @@ jobs:
       # Build frontend
       - name: Build frontend
         run: npm run build
-#        working-directory: frontend
+        working-directory: frontend
 
 #        # Copy frontend build to backend public directory
 #      - name: Copy frontend build to backend
