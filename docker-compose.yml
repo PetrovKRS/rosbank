@@ -32,7 +32,9 @@ services:
   frontend:
     image: petrovkrs/ros_bank_frontend
     env_file: .env
-    command: cp -r /app/dist/. /frontend_static/
+    command:
+      - cp -r /app/dist/. /frontend_static/
+      - npx -y http-server -p 8000 ./frontend/dist
     volumes:
       - static:/var/html/frontend_static
     depends_on:

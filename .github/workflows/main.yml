@@ -84,9 +84,9 @@ jobs:
         run: npm install -g http-server
         working-directory: ./frontend
 
-      # Команда для запуска http-server, раздающего статические файлы из /app/dist
-      - name: Serve frontend with http-server
-        run: npx -y http-server -p 8000 ./frontend/dist
+#      # Команда для запуска http-server, раздающего статические файлы из /app/dist
+#      - name: Serve frontend with http-server
+#        run: npx -y http-server -p 8000 ./frontend/dist
 
 #      # Copy frontend build to backend public directory
 #      - name: Copy frontend build to backend
