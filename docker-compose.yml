@@ -29,13 +29,13 @@ services:
       DB_HOST: db
       DB_PORT: 5432
 
-  frontend:
-    image: petrovkrs/ros_bank_frontend
-    env_file: .env
-    volumes:
-      - ./frontend:/app
-    depends_on:
-      - backend
+#  frontend:
+#    image: petrovkrs/ros_bank_frontend
+#    env_file: .env
+#    volumes:
+#      - ./frontend:/app
+#    depends_on:
+#      - backend
 
   nginx:
     image: nginx:1.21.3
@@ -46,7 +46,7 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - drf-yasg:/var/html/static/
       - static:/var/html/static/
-      - ./frontend/dist:/usr/share/nginx/html/
+#      - ./frontend/dist:/usr/share/nginx/html/
     depends_on:
       - backend
       - frontend
