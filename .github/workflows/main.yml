@@ -80,11 +80,11 @@ jobs:
         run: npm run build
         working-directory: frontend
 
-#        # Copy frontend build to backend public directory
-#      - name: Copy frontend build to backend
-#        run: |
-#          mkdir -p ./backend/public
-#          cp -r ./frontend/build/* ./backend/public/
+        # Copy frontend build to backend public directory
+      - name: Copy frontend build to backend
+        run: |
+          mkdir -p ./backend/public
+          cp -r ./frontend/build/* ./backend/public/
 
   build_frontend_and_push_to_docker_hub:
     name: Push frontend Docker image to DockerHub
