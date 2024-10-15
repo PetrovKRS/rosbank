@@ -80,11 +80,14 @@ jobs:
         run: npm run build
         working-directory: frontend
 
+      - name: list directory contents after build
+        run: ls -al
+
         # Copy frontend build to backend public directory
       - name: Copy frontend build to backend
         run: |
           mkdir -p ./backend/public
-          cp -r ./frontend/build/* ./backend/public/
+          cp -r ./build/* ./backend/public/
         working-directory: frontend
 
   build_frontend_and_push_to_docker_hub:
