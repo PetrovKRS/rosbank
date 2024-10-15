@@ -102,8 +102,10 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Push to DockerHub
         uses: docker/build-push-action@v4
+      - name: List contents
+        run: ls -la
         with:
-          context: ./frontend
+          context: frontend
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/ros_bank_frontend:latest
 
