@@ -60,10 +60,9 @@ jobs:
       - name: Checkout frontend repository
         run: git clone https://github.com/hackathon-Rosbank/rosbank-frontend.git frontend
 
-      # Ensure the frontend directory exists
-      - name: Verify frontend directory exists
-        run: |
-          if [ ! -d "frontend" ]; then echo "Error: Directory ./frontend does not exist."; exit 1; fi
+      # Output current directory contents for debugging
+      - name: List directory contents after clone
+        run: ls -la
 
       - uses: actions/checkout@v3
 
