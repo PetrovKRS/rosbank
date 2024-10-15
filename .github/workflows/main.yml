@@ -100,7 +100,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: List contents
-        run: ls -al && cd ../ && ls -la
+        run: ls -al && cd ../ && ls -la && cd ../ && ls -la
 #      - name: Push to DockerHub
 #        uses: docker/build-push-action@v4
 #        with:
