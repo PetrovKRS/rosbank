@@ -79,10 +79,10 @@ jobs:
         run: npm run build
         working-directory: ./frontend
 
-      # Устанавливаем глобально http-server для раздачи статических файлов
-      - name: Install http-server
-        run: npm install -g http-server
-        working-directory: ./frontend
+#      # Устанавливаем глобально http-server для раздачи статических файлов
+#      - name: Install http-server
+#        run: npm install -g http-server
+#        working-directory: ./frontend
 
 #      # Команда для запуска http-server, раздающего статические файлы из /app/dist
 #      - name: Serve frontend with http-server
