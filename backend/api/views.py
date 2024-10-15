@@ -452,6 +452,7 @@ class TeamIndividualCompetenciesViewSet(
         Возвращает:
         - Response: компетенции сотрудников и статус 200 (OK) или сообщение об ошибке.
         """
+
         if request.method != 'POST':
             return self.method_not_allowed_response()
 
@@ -559,7 +560,7 @@ class CompetencyLevelViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
             raise ValueError(f"Invalid competency level: {competency_level}")
 
 
-class TeamIndividualSkillsViewSet(viewsets.ViewSet):
+class TeamIndividualSkillsViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     """ ViewSet для получения средних значений навыков сотрудника/команды. """
 
     def create(self, request, team_slug, employee_id=None):
