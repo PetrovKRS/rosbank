@@ -108,13 +108,13 @@ jobs:
       - name: List directory contents after checkout
         run: ls -al
 
-      # Шаг 5: Сборка Docker-образа для фронтенда и загрузка на DockerHub
-#      - name: Build and push frontend Docker image
-#        uses: docker/build-push-action@v4
-#        with:
-#          context: ./frontend   # Контекст сборки — директория frontend
-#          push: true            # Отправляем образ на DockerHub
-#          tags: ${{ secrets.DOCKER_USERNAME }}/ros_bank_frontend:latest  # Тег для образа
+      # Сборка Docker-образа для фронтенда и загрузка на DockerHub
+      - name: Build and push frontend Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./frontend   # Контекст сборки — директория frontend
+          push: true            # Отправляем образ на DockerHub
+          tags: ${{ secrets.DOCKER_USERNAME }}/ros_bank_frontend:latest  # Тег для образа
 #
 #      # Шаг 6: Проверка содержимого директории после сборки (опционально)
 #      - name: List directory contents after build
