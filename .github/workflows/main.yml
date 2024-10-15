@@ -103,12 +103,12 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: List contents
         run: cd backend && ls -la && cd ../../ && ls -la
-#      - name: Push to DockerHub
-#        uses: docker/build-push-action@v4
-#        with:
-#          context: frontend
-#          push: true
-#          tags: ${{ secrets.DOCKER_USERNAME }}/ros_bank_frontend:latest
+      - name: Push to DockerHub
+        uses: docker/build-push-action@v4
+        with:
+          context: frontend
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/ros_bank_frontend:latest
 
 #  deploy:
 #    runs-on: ubuntu-latest
