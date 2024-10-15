@@ -62,7 +62,7 @@ jobs:
 
       # Output current directory contents for debugging
       - name: List directory contents after clone
-        run: ls -la
+        run: cd frontend && ls -al
 
       - uses: actions/checkout@v3
 
