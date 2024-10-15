@@ -58,7 +58,7 @@ jobs:
     steps:
       # Checkout frontend repository
       - name: Checkout frontend repository
-        run: git clone https://github.com/hackathon-Rosbank/rosbank-frontend.git frontend
+        run: git clone https://github.com/hackathon-Rosbank/rosbank-frontend.git rosbank-frontend
 
       - uses: actions/checkout@v3
       - name: Set up nodeJS
