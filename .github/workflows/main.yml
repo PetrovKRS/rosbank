@@ -93,27 +93,18 @@ jobs:
         run: ls -al
 #        working-directory: frontend
 
-  build_frontend_and_push_to_docker_hub:
-    name: Build frontend and push Docker image to DockerHub
-    runs-on: ubuntu-latest
-    needs: frontend_tests  # Зависимость от успешного выполнения frontend_tests
-    steps:
-      # Шаг 1: Клонирование репозитория
-      - name: Check out the repo
-        uses: actions/checkout@v3
-
-      # Шаг 2: Установка Docker Buildx
+      # Установка Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # Шаг 3: Логин в DockerHub
+      # Логин в DockerHub
       - name: Login to Docker
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Шаг 4: Проверка содержимого директории для отладки
+      # Проверка содержимого директории для отладки
       - name: List directory contents after checkout
         run: ls -al
 
