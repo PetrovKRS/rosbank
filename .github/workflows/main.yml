@@ -80,6 +80,9 @@ jobs:
         run: npm run build
         working-directory: ./frontend
 
+      - name: List contents
+        run: ls -al
+
         # Copy frontend build to backend public directory
       - name: Copy frontend build to backend
         run: |
