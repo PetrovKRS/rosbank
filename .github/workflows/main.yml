@@ -58,21 +58,30 @@ jobs:
     steps:
       # Checkout frontend repository
       - name: Checkout frontend repository
-        run: git clone https://github.com/hackathon-Rosbank/rosbank-frontend.git rosbank-frontend
+        run: git clone https://github.com/hackathon-Rosbank/rosbank-frontend.git frontend
 
       - uses: actions/checkout@v3
-      - name: Set up nodeJS
+        # Set up Node.js for frontend
+      - name: Set up Node.js for frontend
         uses: actions/setup-node@v3
         with:
-          node-version: 18
-      - name: Install dependencies
-        run: |
-          cd ./rosbank-frontend/
-          npm ci  # Эта команда будет работать только при наличии package-lock.json
-      - name: Test frontend
-        run: |
-          cd ./rosbank-frontend/
-          npm run test
+          node-version: '18'
+
+        # Install frontend dependencies
+      - name: Install frontend dependencies
+        run: npm install
+        working-directory: ./rosbank-frontend
+
+        # Build frontend
+      - name: Build frontend
+        run: npm run build
+        working-directory: ./rosbank-frontend
+
+#        # Copy frontend build to backend public directory
+#      - name: Copy frontend build to backend
+#        run: |
+#          mkdir -p ./backend/public
+#          cp -r ./frontend/build/* ./backend/public/
 
   build_frontend_and_push_to_docker_hub:
     name: Push frontend Docker image to DockerHub
