@@ -520,8 +520,10 @@ class CompetencyLevelViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         competency_id = serializer.validated_data['competencyId']
         team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
 
+        # Получаем сотрудников команды
         employees = self.get_employees(team, employee_id)
 
+        # Фильтруем компетенции сотрудников
         employee_competencies = EmployeeCompetency.objects.filter(
             employee__in=employees,
             competency__id=competency_id,
@@ -547,109 +549,143 @@ class CompetencyLevelViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
     def error_response(self, errors):
         return Response(errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-#################################
-
-
-class SkillAssessmentViewSet(viewsets.ViewSet):
-    """
-    ViewSet для получения оценки навыков команды и индивидуальных навыков.
-    """
-
-    def create(self, request, *args, **kwargs):
-        if 'team-skill-assessment' in request.path:
-            return self.team_skill_assessment(request)
-        elif 'individual-skill-assessment' in request.path:
-            return self.individual_skill_assessment(request)
+        if level <= 33:
+            return "red"
+        elif 34 <= level <= 66:
+            return "yellow"
+        elif level >= 67:
+            return "green"
         else:
+            raise ValueError(f"Invalid competency level: {competency_level}")
+
+
+class TeamIndividualSkillsViewSet(viewsets.ViewSet):
+    """ ViewSet для получения средних значений навыков сотрудника/команды. """
+
+    def create(self, request, team_slug, employee_id=None):
+        if request.method != 'POST':
             return Response(
-                {"detail": "Invalid URL"}, status=status.HTTP_404_NOT_FOUND
+                {"error": "Method not allowed."},
+                status=status.HTTP_405_METHOD_NOT_ALLOWED
             )
 
-    def team_skill_assessment(self, request):
-        """
-        Получение оценки навыков команды.
-        """
-        serializer = SkillAssessmentRequestSerializer(data=request.data)
-        if serializer.is_valid():
-            employee_ids = serializer.validated_data['employeeIds']
-            skill_domen = serializer.validated_data['skillDomen']
-            start_period = serializer.validated_data['startPeriod']
-            end_period = serializer.validated_data['endPeriod']
+        if 'employeeIds' in self.request.data:
+            employee_id = self.request.data.get('employeeIds')
+            # Получаем сотрудников по переданным ID
+            employees = Employee.objects.filter(id__in=employee_id)
+        request_serializer = SkillDomenRequestSerializer(data=request.data)
 
-            skills_data = []
-            for skill in Skill.objects.filter(domen=skill_domen):
-                skill_assessments = EmployeeSkill.objects.filter(
-                    employee__in=employee_ids,
-                    skill=skill,
-                    period__month__gte=start_period['month'],
-                    period__year__gte=start_period['year'],
-                    period__month__lte=end_period['month'],
-                    period__year__lte=end_period['year'],
-                )
+        if request_serializer.is_valid():
+            skill_domen = request_serializer.validated_data['skillDomen']
+            team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
 
-                avg_assessment = skill_assessments.aggregate(
-                    average=Avg('assesment')
-                )['average']
-                if avg_assessment:
-                    skills_data.append(
-                        {
-                            'skillId': skill.id,
-                            'skillName': skill.name,
-                            'assesment': avg_assessment,
-                        }
-                    )
+            skills = self.get_skills(team, employee_id, skill_domen)
+            data = self.prepare_skill_data(skills, skill_domen, team)
 
-            response_data = [
-                {"period": start_period, "skillsData": skills_data}
-            ]
-            return Response({"data": response_data}, status=status.HTTP_200_OK)
+            # Возвращаем данные в формате {"data": data}
+            return Response({"data": data}, status=status.HTTP_200_OK)
+
+        return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_skills(self, team, employee_id, skill_domen):
+        if employee_id is not None:
+            # Загружаем только одного сотрудника по его ID
+            return EmployeeSkill.objects.filter(
+                employee__id__in=employee_id,
+                employee__teams=team,
+                skill__skill_type=skill_domen
+            )
         else:
-            return Response(
-                serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            # Загружаем все компетенции сотрудников команды
+            return EmployeeSkill.objects.filter(
+                employee__teams=team,
+                skill__skill_type=skill_domen
             )
 
-    def individual_skill_assessment(self, request):
-        """
-        Получение оценки навыков сотрудника.
-        """
-        serializer = SkillAssessmentRequestSerializer(data=request.data)
-        if serializer.is_valid():
-            employee_id = serializer.validated_data['employeeIds'][0]
-            skill_domen = serializer.validated_data['skillDomen']
-            start_period = serializer.validated_data['startPeriod']
-            end_period = serializer.validated_data['endPeriod']
+    def prepare_skill_data(self, skills, skill_domen, team):
+        data = []
+        for skill in skills:
 
-            skills_data = []
-            for skill in Skill.objects.filter(domen=skill_domen):
+            planned_avg = EmployeeSkill.objects.filter(skill__id=skill.skill.id
+                ).aggregate(Avg('planned_result'))['planned_result__avg'] or 0
 
-                skill_assessments = EmployeeSkill.objects.filter(
-                    employee_id=employee_id,
-                    skill=skill,
-                    period__month__gte=start_period['month'],
-                    period__year__gte=start_period['year'],
-                    period__month__lte=end_period['month'],
-                    period__year__lte=end_period['year'],
-                )
+            actual_avg = EmployeeSkill.objects.filter(skill__id=skill.skill.id
+                ).aggregate(Avg('actual_result'))['actual_result__avg'] or 0
 
-                avg_assessment = skill_assessments.aggregate(
-                    average=Avg('assesment')
-                )['average']
-                if avg_assessment:
-                    skills_data.append(
-                        {
-                            'skillId': skill.id,
-                            'skillName': skill.name,
-                            'assesment': avg_assessment,
-                        }
-                    )
+            temp = {
+                "skillDomen": skill_domen,
+                "skillId": skill.skill.id,
+                "skillName": skill.skill.skill_name,
+                "plannedResult": round(planned_avg, 2),
+                "actualResult": round(actual_avg, 2)
+            }
+            # Проверка, если в data уже есть элемент с таким же skillId
+            if not any(d['skillId'] == temp['skillId'] for d in data):
+                data.append(temp)
+        return data
 
-            response_data = [
-                {"period": start_period, "skillsData": skills_data}
-            ]
-            return Response({"data": response_data}, status=status.HTTP_200_OK)
+
+class SkillLevelViewSet(viewsets.ViewSet):
+    """ ViewSet для получения уровня навыков сотрудников. """
+
+    def create(self, request, team_slug, employee_id=None):
+        if request.method != 'POST':
+            return Response({"error": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        # Валидация данных запроса
+        request_serializer = SkillLevelRequestSerializer(data=request.data)
+        if not request_serializer.is_valid():
+            return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Получаем данные из запроса
+        skill_id = request_serializer.validated_data['skillId']
+        team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
+
+        # Получаем сотрудников команды
+        employees = self.get_employees(team, employee_id)
+
+        # Фильтруем компетенции сотрудников
+        employee_skills = EmployeeSkill.objects.filter(
+            employee__in=employees,
+            skill__id=skill_id,
+        )
+
+        # Если компетенций нет
+        if not employee_skills.exists():
+            return Response({"data": []}, status=status.HTTP_200_OK)
+
+        # Формируем данные для ответа
+        data = self.prepare_skill_data(employee_skills)
+        return Response({"data": data}, status=status.HTTP_200_OK)
+
+    def get_employees(self, team, employee_id):
+        """Получаем сотрудников команды, фильтруя по employee_id, если передан."""
+
+        return team.employee.filter(id=employee_id) if employee_id else team.employee.all()
+
+    def prepare_skill_data(self, employee_skills):
+        """Подготавливаем данные для ответа."""
+
+        data = []
+        for emp_skill in employee_skills:
+            data.append({
+                "employeeId": emp_skill.employee.id,
+                "skillDomen": emp_skill.skill.skill_type.capitalize(),
+                "assessment": str(emp_skill.skill_level),
+                "color": self.get_color_based_on_assessment(emp_skill.skill_level)
+            })
+        return data
+
+    def get_color_based_on_assessment(self, skill_level):
+        """ Метод для определения цвета в зависимости от уровня навыка. """
+
+        level = int(skill_level)  # Преобразуем строковый уровень в число
+
+        if level <= 33:
+            return "red"
+        elif 34 <= level <= 66:
+            return "yellow"
+        elif level >= 67:
+            return "green"
         else:
-            return Response(
-                serializer.errors, status=status.HTTP_400_BAD_REQUEST
-            )
+            raise ValueError(f"Invalid skill level: {skill_level}")

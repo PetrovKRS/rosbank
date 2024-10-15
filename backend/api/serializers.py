@@ -37,6 +37,12 @@ from core.models import (
     EmployeeExpectedSkill,
     SkillTypeEnum,
     Employee,
+    DevelopmentPlan, EmployeeDevelopmentPlan, EmployeeEngagement,
+    KeyPeople, EmployeeKeyPeople, TrainingApplication, EmployeeTrainingApplication,
+    BusFactor, EmployeeBusFactor, Grade, EmployeeGrade, KeySkill, EmployeeKeySkill,
+    Team, EmployeeTeam, Position, EmployeePosition, Competency, PositionCompetency,
+    TeamPosition, EmployeeCompetency, Skill, EmployeeSkill, SkillForCompetency,
+    ExpectedSkill, EmployeeExpectedSkill, SkillTypeEnum, Employee, EmployeeAssesmentSkill,
 )
 
 
@@ -84,20 +90,17 @@ class TrainingApplicationSerializer(serializers.ModelSerializer):
 
 
 class AssesmentOfPotentionSerializer(serializers.Serializer):
-    """Сериализатор для оценки потенциала сотрудника."""
-
-    involvmentLevel = serializers.CharField(
-        source='employee_engagements.engagement.engagement_name'
-    )
+    """ Сериализатор для оценки потенциала сотрудника. """
     assesmentLevel = serializers.SerializerMethodField()
+    involvmentLevel = serializers.IntegerField(
+        source='engagements.performance_score', default=0)
 
     def get_assesmentLevel(self, obj):
-        '''Возвращаем уровень оценки.'''
-        average_assessment = obj.assesments_skills.aggregate(Avg('assesment'))[
-            'assesment__avg'
-        ]
+        average_assessment = obj.assesments_skills.aggregate(Avg('assesment'))['assesment__avg']
+        # Если есть средняя оценка, возвращаем её, иначе возвращаем 0
         return average_assessment if average_assessment is not None else 0
 
+    
 
 class EmployeeSerializer(serializers.ModelSerializer):
     """Основной сериализатор для сотрудников."""
@@ -360,3 +363,32 @@ class CompetencySerializer(serializers.Serializer):
 
     def get_actualResult(self, obj):
         return f"{obj.actual_result:.1f}"
+
+
+
+class SkillSerializer(serializers.ModelSerializer):
+    skillId = serializers.IntegerField(source='id')
+    skillName = serializers.CharField(source='skill_name')
+    plannedResult = serializers.FloatField()
+    actualResult = serializers.FloatField()
+
+    class Meta:
+        model = Skill
+        fields = ['skillId', 'skillName', 'plannedResult', 'actualResult']
+
+
+class TeamSkillSerializer(serializers.Serializer):
+    numberOfEmployee = serializers.CharField(max_length=10)
+    numberOfBusFactor = serializers.CharField(max_length=10)
+    numberOfKeyPeople = serializers.CharField(max_length=10)
+
+
+class IndividualSkillAverageSerializer(serializers.Serializer):
+    skillDomen = serializers.CharField()
+    skillId = serializers.IntegerField()
+    skillName = serializers.CharField()
+    plannedResult = serializers.FloatField()
+    actualResult = serializers.FloatField()
+
+class SkillLevelRequestSerializer(serializers.Serializer):
+    skillId = serializers.IntegerField()
