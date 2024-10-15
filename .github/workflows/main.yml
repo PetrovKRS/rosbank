@@ -87,7 +87,7 @@ jobs:
       - name: Copy frontend build to backend
         run: |
           mkdir -p ./backend/public
-          cp -r ./dist/* ./backend/public/
+          cp -r ./frontend/dist/* ./backend/public/
 #        working-directory: frontend
 
   build_frontend_and_push_to_docker_hub:
