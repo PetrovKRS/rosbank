@@ -69,7 +69,10 @@ jobs:
 
         # Install frontend dependencies
       - name: Install frontend dependencies
-        run: npm install
+        run:
+          cd ../frontend
+          npm install
+
         working-directory: ./frontend
 
         # Build frontend
