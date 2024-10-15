@@ -1,13 +1,17 @@
 import uuid
 from enum import Enum
+from wsgiref.validate import validator
 
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.utils.formats import date_format
 from django.views.decorators.http import condition
 from django_filters.utils import verbose_field_name
+from social_core.utils import first
 
 from users.models import ManagerTeam
+
 
 
 class Employee(models.Model):
@@ -20,21 +24,25 @@ class Employee(models.Model):
         default=uuid.uuid4,
     )
     first_name = models.CharField(
-        max_length=100,
+        max_length=21,
         verbose_name='Имя',
     )
     last_name = models.CharField(
-        max_length=100,
+        max_length=21,
         verbose_name='Фамилия',
     )
     email = models.EmailField(
-        max_length=100, unique=True, verbose_name='E-mail'
+        max_length=100,
+        unique=True,
+        verbose_name='E-mail'
     )
-    status = models.CharField(max_length=50)
+    status = models.CharField(
+        max_length=50
+    )
     registration_date = models.DateField(
         auto_now_add=True,
         db_index=True,
-        verbose_name='Дата регистрации сотрудника',
+        verbose_name='Дата регистрации сотрудника'
     )
     last_login_date = models.DateField(
         auto_now_add=True,
@@ -48,6 +56,13 @@ class Employee(models.Model):
         ordering = (
             'first_name',
             'last_name',
+        )
+        constraints = (
+            models.UniqueConstraint(
+                fields=('employee_id', 'email'),
+                name='unique_first_name_email',
+                violation_error_message='Сотрудник с таким именем и почтой уже существует.'
+            ),
         )
 
     def __str__(self):
@@ -82,6 +97,10 @@ class EmployeeAssesmentSkill(models.Model):
     )
     assesment = models.IntegerField(
         default=0,
+        validators=(
+            MinValueValidator(0),
+            MaxValueValidator(100)
+        ),
         verbose_name='Оценка навыка сотрудника',
     )
 
@@ -127,8 +146,12 @@ class EmployeeDevelopmentPlan(models.Model):
         verbose_name='План развития',
     )
     performance_score = models.DecimalField(
-        max_digits=5,
+        max_digits=10,
         decimal_places=2,
+        validators=(
+            MinValueValidator(0),
+            MaxValueValidator(10)
+        ),
         verbose_name='Процент развития',
     )
     add_date = models.DateField(
@@ -141,6 +164,12 @@ class EmployeeDevelopmentPlan(models.Model):
         verbose_name = 'План развития сотрудника'
         verbose_name_plural = 'Планы развития сотрудников'
         ordering = ('development_plan',)
+        constraints = (
+            models.UniqueConstraint(
+                fields=('employee', 'development_plan'),
+                name='unique_employee_development_plan'
+            ),
+        )
 
     def __str__(self):
         return f"{self.employee} - {self.development_plan}"
@@ -153,10 +182,6 @@ class Engagement(models.Model):
         max_length=255,
         verbose_name='Название вовлеченности',
     )
-
-    def __str__(self):
-        return self.engagement_name
-
     employee_count = models.IntegerField(
         default=0,
         verbose_name='Количество вовлеченных сотрудников',
@@ -167,6 +192,9 @@ class Engagement(models.Model):
         verbose_name_plural = 'Вовлеченности'
         ordering = ('engagement_name',)
 
+    def __str__(self):
+        return self.engagement_name
+
 
 class EmployeeEngagement(models.Model):
     """Модель -Вовлеченность сотрудника-."""
@@ -174,14 +202,19 @@ class EmployeeEngagement(models.Model):
     employee = models.OneToOneField(
         Employee,
         on_delete=models.CASCADE,
-        related_name='employee_engagements',
+        related_name='engagements',
     )
     engagement = models.ForeignKey(
         Engagement,
         on_delete=models.CASCADE,
+        related_name='employee_engagements',
         verbose_name='Вовлеченность',
     )
     performance_score = models.IntegerField(
+        validators=(
+            MinValueValidator(0),
+            MaxValueValidator(10)
+        ),
         verbose_name='Уровень вовлеченности сотрудника',
     )
     add_date = models.DateField(
@@ -211,8 +244,8 @@ class KeyPeople(models.Model):
     )
 
     class Meta:
-        verbose_name = 'Вовлеченность сотрудника'
-        verbose_name_plural = 'Вовлеченность сотрудников'
+        verbose_name = 'Key people'
+        verbose_name_plural = "Key people's"
         ordering = ('key_people_name',)
 
     def __str__(self):
@@ -291,6 +324,12 @@ class EmployeeTrainingApplication(models.Model):
         verbose_name = 'Заявка на обучение сотрудника'
         verbose_name_plural = 'Заявки на обучение сотрудников'
         ordering = ('training_application',)
+        constraints = (
+            models.UniqueConstraint(
+                fields=('employee', 'training_application'),
+                name='unique_employee_training_application'
+            ),
+        )
 
     def __str__(self):
         return f"{self.employee} - {self.training_application}"
@@ -345,12 +384,28 @@ class EmployeeBusFactor(models.Model):
         return f"{self.employee} - {self.bus_factor}"
 
 
+class GradeTypeEnum(Enum):
+    JUNIOR = 'junior'
+    MIDDLE = 'middle'
+    SENIOR = 'senior'
+
+    @classmethod
+    def choices(cls):
+        return [(key.value, key.name.capitalize()) for key in cls]
+
+
 class Grade(models.Model):
     """Модель -Класс-."""
 
     grade_name = models.CharField(
         max_length=255,
         verbose_name='Название класса',
+    )
+    grade_type = models.CharField(
+        max_length=100,
+        choices=GradeTypeEnum.choices(),
+        default=GradeTypeEnum.JUNIOR,
+        verbose_name='Тип класса',
     )
 
     class Meta:
@@ -380,6 +435,12 @@ class EmployeeGrade(models.Model):
         verbose_name = 'Класс сотрудника'
         verbose_name_plural = 'Классы сотрудников'
         ordering = ('grade',)
+        constraints = (
+            models.UniqueConstraint(
+                fields=('employee', 'grade'),
+                name='unique_employee_grade'
+            ),
+        )
 
     def __str__(self):
         return f"{self.employee} - {self.grade}"
@@ -462,7 +523,7 @@ class Team(models.Model):
 class EmployeeTeam(models.Model):
     """Модель -Команда сотрудника-."""
 
-    manager = models.ForeignKey(
+    manager  = models.ForeignKey(
         ManagerTeam,
         on_delete=models.CASCADE,
         related_name='teams',
@@ -508,6 +569,36 @@ class Position(models.Model):
         return self.position_name
 
 
+class PositionGrade(models.Model):
+
+    position = models.ForeignKey(
+        Position,
+        on_delete=models.CASCADE,
+        related_name='position_grades',
+        verbose_name='Должность',
+    )
+    grade = models.ForeignKey(
+        Grade,
+        on_delete=models.CASCADE,
+        related_name='grade_positions',
+        verbose_name='Грейд',
+    )
+    ate_added = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата добавления грейда к должности'
+    )
+
+    class Meta:
+        verbose_name = 'Грейд сотрудника'
+        verbose_name_plural = 'Грейды сотрудников'
+        ordering = (
+            'position',
+        )
+
+    def __str__(self):
+        return f"{self.employee} - {self.position} ({self.grade})"
+
+
 class EmployeePosition(models.Model):
     """Модель -Должность сотрудника-."""
 
@@ -526,6 +617,12 @@ class EmployeePosition(models.Model):
         verbose_name = 'Должность сотрудника'
         verbose_name_plural = 'Должности сотрудников'
         ordering = ('position',)
+        constraints = (
+            models.UniqueConstraint(
+                fields=('employee', 'position'),
+                name='unique_employee_position'
+            ),
+        )
 
     def __str__(self):
         return f"{self.employee} - {self.position}"
@@ -551,7 +648,7 @@ class Competency(models.Model):
         default=0, verbose_name='Количество сотрудников с данной компетенцией'
     )
     competency_type = models.CharField(
-        max_length=4,
+        max_length=100,
         choices=SkillTypeEnum.choices(),
         default=SkillTypeEnum.HARD,
         verbose_name='Тип компетенции',
@@ -641,6 +738,12 @@ class EmployeeCompetency(models.Model):
         verbose_name = 'Компетенция сотрудника'
         verbose_name_plural = 'Компетенции сотрудников'
         ordering = ('competency',)
+        constraints = (
+            models.UniqueConstraint(
+                fields=('employee', 'competency'),
+                name='unique_employee_competency'
+            ),
+        )
 
     def __str__(self):
         return f"{self.employee} - {self.competency} ({self.competency_level})"
@@ -651,6 +754,7 @@ class Skill(models.Model):
 
     skill_name = models.CharField(
         max_length=255,
+        unique=True,
         verbose_name='Название навыка',
     )
     skill_type = models.CharField(
@@ -690,11 +794,33 @@ class EmployeeSkill(models.Model):
         default=0,
         verbose_name='Уровень навыка сотрудника',
     )
+    planned_result = models.FloatField(
+        default=0.0,
+        validators=(
+            MinValueValidator(0),
+            MaxValueValidator(5)
+        ),
+        verbose_name='Плановая оценка',
+    )
+    actual_result = models.FloatField(
+        default=0.0,
+        validators=(
+            MinValueValidator(0),
+            MaxValueValidator(5)
+        ),
+        verbose_name='Фактическая оценка',
+    )
 
     class Meta:
         verbose_name = 'Навык сотрудника'
         verbose_name_plural = 'Навыки сотрудников'
         ordering = ('skill',)
+        constraints = (
+            models.UniqueConstraint(
+                fields=('employee', 'skill'),
+                name='unique_employee_skill'
+            ),
+        )
 
     def __str__(self):
         return f"{self.employee.first_name} {self.employee.last_name} - {self.skill.skill_name} ({self.skill_level})"
@@ -790,3 +916,4 @@ class CompetencyForExpectedSkill(models.Model):
 
     def __str__(self):
         return f"{self.expected_skill} - {self.competency}"
+

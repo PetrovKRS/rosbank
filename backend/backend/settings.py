@@ -4,12 +4,18 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv()
 
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
+
+# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY', 'Ros_b')
 
+# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG_ENV = os.getenv('DEBUG')
 if DEBUG_ENV == 'True':
     DEBUG = True
@@ -21,6 +27,16 @@ CSRF_TRUSTED_ORIGINS = os.getenv(
     'CSRF_TRUSTED_ORIGINS', 'http://127.0.0.1'
 ).split(',')
 
+# Разрешение всех источников (не рекомендуется для продакшн)
+CORS_ALLOW_ALL_ORIGINS = True
+
+# Разрешение определенного источника
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # ваш фронтенд-URL
+    "https://rosb-hakaton.ddns.net",  # основной домен
+]
+
+# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -31,7 +47,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework.authtoken',
     'rest_framework',
+    'django_filters',
     'drf_yasg',
+    'corsheaders',
     'djoser',
     'users.apps.UsersConfig',
     'api.apps.ApiConfig',
@@ -42,6 +60,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
