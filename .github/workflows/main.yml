@@ -75,10 +75,10 @@ jobs:
       # Install frontend dependencies
       - name: Install frontend dependencies
         run: |
-          cd frontend
           ls -al
+          delay 3
           npm install
-#        working-directory: frontend
+        working-directory: frontend
 
       # Build frontend
       - name: Build frontend
