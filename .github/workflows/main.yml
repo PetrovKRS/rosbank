@@ -105,10 +105,6 @@ jobs:
       - name: Push to DockerHub
         uses: docker/build-push-action@v4
         with:
-          context: ./frontend
-          push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/ros_bank_frontend:latest
-        with:
           context: frontend
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/ros_bank_frontend:latest
