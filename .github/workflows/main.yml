@@ -81,7 +81,7 @@ jobs:
         working-directory: frontend
 
       - name: list directory contents after build
-        run: ls -al
+        run: cd frontend && ls -al
 
         # Copy frontend build to backend public directory
       - name: Copy frontend build to backend
