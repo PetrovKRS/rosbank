@@ -33,11 +33,8 @@ services:
 #    image: petrovkrs/ros_bank_frontend
     build: ./frontend
     env_file: .env
-    command:
-      - cp -r /app/dist/. /frontend_static/
-      - bash frontend.sh
     volumes:
-      - static:/var/html/frontend_static
+      - ./frontend/:/app/result_build/
     depends_on:
       - backend
 
