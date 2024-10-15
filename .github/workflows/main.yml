@@ -62,7 +62,7 @@ jobs:
 
       # Output current directory contents for debugging
       - name: List directory contents after clone
-        run: cd frontend && ls -al
+        run: ls -al ../
 
       - uses: actions/checkout@v3
 
@@ -74,10 +74,7 @@ jobs:
 
       # Install frontend dependencies
       - name: Install frontend dependencies
-        run: |
-          ls -al
-          delay 3
-          npm install
+        run: npm install
         working-directory: frontend
 
       # Build frontend
