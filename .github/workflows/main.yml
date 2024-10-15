@@ -54,6 +54,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout frontend repository
+      - name: Checkout frontend repository
+        run: git clone git@github.com:hackathon-Rosbank/rosbank-frontend.git frontend
+
       - uses: actions/checkout@v3
       - name: Set up nodeJS
         uses: actions/setup-node@v3
