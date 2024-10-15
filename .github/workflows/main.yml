@@ -75,12 +75,12 @@ jobs:
       # Install frontend dependencies
       - name: Install frontend dependencies
         run: npm install
-        working-directory: ./frontend
+        working-directory: frontend
 
       # Build frontend
       - name: Build frontend
         run: npm run build
-        working-directory: ./frontend
+        working-directory: frontend
 
 #        # Copy frontend build to backend public directory
 #      - name: Copy frontend build to backend
