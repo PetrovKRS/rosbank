@@ -63,6 +63,7 @@ from api.serializers import (
     TeamMetricResponseSerializer,
     TeamEmployeeDashboardSerializer,
     CompetencySerializer,
+    SkillLevelRequestSerializer
 )
 
 
@@ -550,14 +551,7 @@ class CompetencyLevelViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
     def error_response(self, errors):
         return Response(errors, status=status.HTTP_400_BAD_REQUEST)
-        if level <= 33:
-            return "red"
-        elif 34 <= level <= 66:
-            return "yellow"
-        elif level >= 67:
-            return "green"
-        else:
-            raise ValueError(f"Invalid competency level: {competency_level}")
+ 
 
 
 class TeamIndividualSkillsViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
