@@ -1,10 +1,15 @@
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from core.models import (
-    EmployeeSkill, Skill, EmployeeCompetency, Competency,
-    EmployeeBusFactor, EmployeeKeyPeople, Engagement, EmployeeEngagement,
-    PositionGrade, Position, EmployeeTrainingApplication, TrainingApplication,
-    EmployeeDevelopmentPlan, DevelopmentPlan, EmployeeKeyPeople, KeyPeople,
+    EmployeeSkill,
+    EmployeeCompetency,
+    EmployeeBusFactor,
+    EmployeeKeyPeople,
+    EmployeeEngagement,
+    PositionGrade,
+    EmployeeTrainingApplication,
+    EmployeeDevelopmentPlan,
+    EmployeeKeyPeople,
 )
 
 
@@ -24,7 +29,9 @@ def update_employee_count(sender, instance, **kwargs):
 def update_employee_count(sender, instance, **kwargs):
     development_plan = instance.development_plan
     # Пересчитываем количество сотрудников с планом развития
-    development_plan.employee_count = development_plan.employeedevelopmentplan_set.count()
+    development_plan.employee_count = (
+        development_plan.employeedevelopmentplan_set.count()
+    )
     development_plan.save()
 
 
@@ -34,7 +41,9 @@ def update_employee_count(sender, instance, **kwargs):
 def update_employee_count(sender, instance, **kwargs):
     training_application = instance.training_application
     # Пересчитываем количество сотрудников, связанных с заявкой на обучение
-    training_application.employee_count = training_application.employeetrainingapplication_set.count()
+    training_application.employee_count = (
+        training_application.employeetrainingapplication_set.count()
+    )
     training_application.save()
 
 
@@ -72,7 +81,9 @@ def update_employee_count(sender, instance, **kwargs):
 def update_employee_competency_count(sender, instance, **kwargs):
     competency = instance.competency
     # Подсчет количества сотрудников с данной компетенцией
-    competency.employee_count = EmployeeCompetency.objects.filter(competency=competency).count()
+    competency.employee_count = EmployeeCompetency.objects.filter(
+        competency=competency
+    ).count()
     competency.save()
 
 
@@ -81,7 +92,9 @@ def update_employee_competency_count(sender, instance, **kwargs):
 def update_employee_count_on_save(sender, instance, created, **kwargs):
     if created:
         bus_factor = instance.bus_factor
-        bus_factor.employee_count = EmployeeBusFactor.objects.filter(bus_factor=bus_factor).count()
+        bus_factor.employee_count = EmployeeBusFactor.objects.filter(
+            bus_factor=bus_factor
+        ).count()
         bus_factor.save()
 
 
@@ -89,21 +102,30 @@ def update_employee_count_on_save(sender, instance, created, **kwargs):
 @receiver(post_delete, sender=EmployeeBusFactor)
 def update_employee_count_on_delete(sender, instance, **kwargs):
     bus_factor = instance.bus_factor
-    bus_factor.employee_count = EmployeeBusFactor.objects.filter(bus_factor=bus_factor).count()
+    bus_factor.employee_count = EmployeeBusFactor.objects.filter(
+        bus_factor=bus_factor
+    ).count()
     bus_factor.save()
 
 
 # Сигнал для обновления employee_count при добавлении записи EmployeeKeyPeople
 @receiver(post_save, sender=EmployeeKeyPeople)
-def update_employee_count_on_save_key_people(sender, instance, created, **kwargs):
+def update_employee_count_on_save_key_people(
+    sender, instance, created, **kwargs
+):
     if created:
         key_people = instance.key_people
-        key_people.employee_count = EmployeeKeyPeople.objects.filter(key_people=key_people).count()
+        key_people.employee_count = EmployeeKeyPeople.objects.filter(
+            key_people=key_people
+        ).count()
         key_people.save()
+
 
 # Сигнал для обновления employee_count при удалении записи EmployeeKeyPeople
 @receiver(post_delete, sender=EmployeeKeyPeople)
 def update_employee_count_on_delete_key_people(sender, instance, **kwargs):
     key_people = instance.key_people
-    key_people.employee_count = EmployeeKeyPeople.objects.filter(key_people=key_people).count()
+    key_people.employee_count = EmployeeKeyPeople.objects.filter(
+        key_people=key_people
+    ).count()
     key_people.save()

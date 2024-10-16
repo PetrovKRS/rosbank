@@ -1,17 +1,10 @@
 import uuid
 from enum import Enum
-from wsgiref.validate import validator
 
-from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
-from django.utils.formats import date_format
-from django.views.decorators.http import condition
-from django_filters.utils import verbose_field_name
-from social_core.utils import first
 
 from users.models import ManagerTeam
-
 
 
 class Employee(models.Model):
@@ -32,17 +25,13 @@ class Employee(models.Model):
         verbose_name='Фамилия',
     )
     email = models.EmailField(
-        max_length=100,
-        unique=True,
-        verbose_name='E-mail'
+        max_length=100, unique=True, verbose_name='E-mail'
     )
-    status = models.CharField(
-        max_length=50
-    )
+    status = models.CharField(max_length=50)
     registration_date = models.DateField(
         auto_now_add=True,
         db_index=True,
-        verbose_name='Дата регистрации сотрудника'
+        verbose_name='Дата регистрации сотрудника',
     )
     last_login_date = models.DateField(
         auto_now_add=True,
@@ -61,7 +50,7 @@ class Employee(models.Model):
             models.UniqueConstraint(
                 fields=('employee_id', 'email'),
                 name='unique_first_name_email',
-                violation_error_message='Сотрудник с таким именем и почтой уже существует.'
+                violation_error_message='Сотрудник с таким именем и почтой уже существует.',
             ),
         )
 
@@ -97,10 +86,7 @@ class EmployeeAssesmentSkill(models.Model):
     )
     assesment = models.IntegerField(
         default=0,
-        validators=(
-            MinValueValidator(0),
-            MaxValueValidator(100)
-        ),
+        validators=(MinValueValidator(0), MaxValueValidator(100)),
         verbose_name='Оценка навыка сотрудника',
     )
 
@@ -148,10 +134,7 @@ class EmployeeDevelopmentPlan(models.Model):
     performance_score = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        validators=(
-            MinValueValidator(0),
-            MaxValueValidator(10)
-        ),
+        validators=(MinValueValidator(0), MaxValueValidator(10)),
         verbose_name='Процент развития',
     )
     add_date = models.DateField(
@@ -167,7 +150,7 @@ class EmployeeDevelopmentPlan(models.Model):
         constraints = (
             models.UniqueConstraint(
                 fields=('employee', 'development_plan'),
-                name='unique_employee_development_plan'
+                name='unique_employee_development_plan',
             ),
         )
 
@@ -211,10 +194,7 @@ class EmployeeEngagement(models.Model):
         verbose_name='Вовлеченность',
     )
     performance_score = models.IntegerField(
-        validators=(
-            MinValueValidator(0),
-            MaxValueValidator(10)
-        ),
+        validators=(MinValueValidator(0), MaxValueValidator(10)),
         verbose_name='Уровень вовлеченности сотрудника',
     )
     add_date = models.DateField(
@@ -327,7 +307,7 @@ class EmployeeTrainingApplication(models.Model):
         constraints = (
             models.UniqueConstraint(
                 fields=('employee', 'training_application'),
-                name='unique_employee_training_application'
+                name='unique_employee_training_application',
             ),
         )
 
@@ -437,8 +417,7 @@ class EmployeeGrade(models.Model):
         ordering = ('grade',)
         constraints = (
             models.UniqueConstraint(
-                fields=('employee', 'grade'),
-                name='unique_employee_grade'
+                fields=('employee', 'grade'), name='unique_employee_grade'
             ),
         )
 
@@ -523,7 +502,7 @@ class Team(models.Model):
 class EmployeeTeam(models.Model):
     """Модель -Команда сотрудника-."""
 
-    manager  = models.ForeignKey(
+    manager = models.ForeignKey(
         ManagerTeam,
         on_delete=models.CASCADE,
         related_name='teams',
@@ -584,16 +563,13 @@ class PositionGrade(models.Model):
         verbose_name='Грейд',
     )
     ate_added = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Дата добавления грейда к должности'
+        auto_now_add=True, verbose_name='Дата добавления грейда к должности'
     )
 
     class Meta:
         verbose_name = 'Грейд сотрудника'
         verbose_name_plural = 'Грейды сотрудников'
-        ordering = (
-            'position',
-        )
+        ordering = ('position',)
 
     def __str__(self):
         return f"{self.employee} - {self.position} ({self.grade})"
@@ -620,7 +596,7 @@ class EmployeePosition(models.Model):
         constraints = (
             models.UniqueConstraint(
                 fields=('employee', 'position'),
-                name='unique_employee_position'
+                name='unique_employee_position',
             ),
         )
 
@@ -741,7 +717,7 @@ class EmployeeCompetency(models.Model):
         constraints = (
             models.UniqueConstraint(
                 fields=('employee', 'competency'),
-                name='unique_employee_competency'
+                name='unique_employee_competency',
             ),
         )
 
@@ -796,18 +772,12 @@ class EmployeeSkill(models.Model):
     )
     planned_result = models.FloatField(
         default=0.0,
-        validators=(
-            MinValueValidator(0),
-            MaxValueValidator(5)
-        ),
+        validators=(MinValueValidator(0), MaxValueValidator(5)),
         verbose_name='Плановая оценка',
     )
     actual_result = models.FloatField(
         default=0.0,
-        validators=(
-            MinValueValidator(0),
-            MaxValueValidator(5)
-        ),
+        validators=(MinValueValidator(0), MaxValueValidator(5)),
         verbose_name='Фактическая оценка',
     )
 
@@ -817,8 +787,7 @@ class EmployeeSkill(models.Model):
         ordering = ('skill',)
         constraints = (
             models.UniqueConstraint(
-                fields=('employee', 'skill'),
-                name='unique_employee_skill'
+                fields=('employee', 'skill'), name='unique_employee_skill'
             ),
         )
 
@@ -916,4 +885,3 @@ class CompetencyForExpectedSkill(models.Model):
 
     def __str__(self):
         return f"{self.expected_skill} - {self.competency}"
-

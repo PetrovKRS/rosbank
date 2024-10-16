@@ -4,45 +4,25 @@ from django.db.models import Avg
 
 # Сторонние библиотеки
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
 
 # Модули текущего проекта
-from users.models import ManagerTeam
 from core.models import (
-    DevelopmentPlan,
-    EmployeeDevelopmentPlan,
-    EmployeeEngagement,
-    KeyPeople,
     EmployeeKeyPeople,
-    TrainingApplication,
     EmployeeTrainingApplication,
-    BusFactor,
     EmployeeBusFactor,
-    Grade,
-    EmployeeGrade,
-    KeySkill,
-    EmployeeKeySkill,
-    Team,
-    EmployeeTeam,
-    Position,
-    EmployeePosition,
-    Competency,
-    PositionCompetency,
-    TeamPosition,
     EmployeeCompetency,
     Skill,
     EmployeeSkill,
-    SkillForCompetency,
-    ExpectedSkill,
-    EmployeeExpectedSkill,
     SkillTypeEnum,
     Employee,
-    DevelopmentPlan, EmployeeDevelopmentPlan, EmployeeEngagement,
-    KeyPeople, EmployeeKeyPeople, TrainingApplication, EmployeeTrainingApplication,
-    BusFactor, EmployeeBusFactor, Grade, EmployeeGrade, KeySkill, EmployeeKeySkill,
-    Team, EmployeeTeam, Position, EmployeePosition, Competency, PositionCompetency,
-    TeamPosition, EmployeeCompetency, Skill, EmployeeSkill, SkillForCompetency,
-    ExpectedSkill, EmployeeExpectedSkill, SkillTypeEnum, Employee, EmployeeAssesmentSkill,
+    EmployeeKeyPeople,
+    EmployeeTrainingApplication,
+    EmployeeBusFactor,
+    EmployeeCompetency,
+    Skill,
+    EmployeeSkill,
+    SkillTypeEnum,
+    Employee,
 )
 
 
@@ -90,17 +70,20 @@ class TrainingApplicationSerializer(serializers.ModelSerializer):
 
 
 class AssesmentOfPotentionSerializer(serializers.Serializer):
-    """ Сериализатор для оценки потенциала сотрудника. """
+    """Сериализатор для оценки потенциала сотрудника."""
+
     assesmentLevel = serializers.SerializerMethodField()
     involvmentLevel = serializers.IntegerField(
-        source='engagements.performance_score', default=0)
+        source='engagements.performance_score', default=0
+    )
 
     def get_assesmentLevel(self, obj):
-        average_assessment = obj.assesments_skills.aggregate(Avg('assesment'))['assesment__avg']
+        average_assessment = obj.assesments_skills.aggregate(Avg('assesment'))[
+            'assesment__avg'
+        ]
         # Если есть средняя оценка, возвращаем её, иначе возвращаем 0
         return average_assessment if average_assessment is not None else 0
 
-    
 
 class EmployeeSerializer(serializers.ModelSerializer):
     """Основной сериализатор для сотрудников."""
@@ -193,27 +176,11 @@ class IndividualDevelopmentPlanResponseSerializer(serializers.Serializer):
     completionForToday = serializers.CharField()
 
 
-class TeamMetricsRequestSerializer(serializers.Serializer):
-    '''Сериализатор для запроса метрик по команде.'''
-
-    startPeriod = serializers.DictField(child=serializers.CharField())
-    endPeriod = serializers.DictField(child=serializers.CharField())
-
-
 class PeriodSerializer(serializers.Serializer):
     '''Сериализатор для периода.'''
 
     month = serializers.CharField(max_length=20)
     year = serializers.IntegerField()
-
-
-class SkillAssessmentRequestSerializer(serializers.Serializer):
-    '''Сериализатор для запроса оценки навыков.'''
-
-    employeeIds = serializers.ListField(child=serializers.CharField())
-    skillDomen = serializers.CharField(max_length=50)
-    startPeriod = PeriodSerializer()
-    endPeriod = PeriodSerializer()
 
 
 class SkillDataSerializer(serializers.Serializer):
@@ -253,22 +220,6 @@ class CompetencyLevelRequestSerializer(serializers.Serializer):
     '''Сериализатор для запроса компетенции.'''
 
     competencyId = serializers.IntegerField()
-
-
-class MetricResponseSerializer(serializers.Serializer):
-    '''Сериализатор для метрик.'''
-
-    period = serializers.DictField()
-    performance = serializers.CharField()
-
-
-class TeamMetricsResponseSerializer(serializers.Serializer):
-    '''Сериализатор для метрик по команде.'''
-
-    period = serializers.DictField(child=serializers.CharField())
-    numberOfEmployee = serializers.CharField()
-    numberOfBusFactor = serializers.CharField()
-    numberOfKeyPeople = serializers.CharField()
 
 
 class EmployeeCompetencySerializer(serializers.ModelSerializer):
@@ -365,7 +316,6 @@ class CompetencySerializer(serializers.Serializer):
         return f"{obj.actual_result:.1f}"
 
 
-
 class SkillSerializer(serializers.ModelSerializer):
     skillId = serializers.IntegerField(source='id')
     skillName = serializers.CharField(source='skill_name')
@@ -389,6 +339,7 @@ class IndividualSkillAverageSerializer(serializers.Serializer):
     skillName = serializers.CharField()
     plannedResult = serializers.FloatField()
     actualResult = serializers.FloatField()
+
 
 class SkillLevelRequestSerializer(serializers.Serializer):
     skillId = serializers.IntegerField()

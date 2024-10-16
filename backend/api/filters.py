@@ -27,12 +27,15 @@ class EmployeeFilter(filters.FilterSet):
         field_name='last_name',
         lookup_expr='icontains',
         label='Фамилия сотрудника',
-        distinct=True
+        distinct=True,
     )
 
     class Meta:
         model = Employee
         fields = (
-            'position', 'grade', 'skill',
-            'competency', 'last_name',
+            'position',
+            'grade',
+            'skill',
+            'competency',
+            'last_name',
         )

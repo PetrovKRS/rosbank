@@ -15,10 +15,11 @@ from core.tests.factories import (
     ManagerTeamFactory,
 )
 
+
 class UrlTests(APITestCase):
 
     def setUp(self):
-        
+
         self.manager = ManagerTeamFactory()
 
         self.team = TeamFactory()

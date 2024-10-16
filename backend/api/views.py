@@ -6,64 +6,37 @@ from typing import Optional, Tuple, List, Dict
 # Сторонние библиотеки
 from django.db.models import Avg, Sum, QuerySet
 from django.db.models.functions import ExtractMonth, ExtractYear
-from django.shortcuts import render, get_object_or_404
-from django_filters import rest_framework as filters
+from django.shortcuts import get_object_or_404
 from rest_framework import (
     mixins,
-    permissions,
     status,
     viewsets,
-    exceptions,
-    generics,
 )
-from rest_framework.decorators import action
 from rest_framework.response import Response
 
 # Модули текущего проекта
 from core.models import (
-    DevelopmentPlan,
     EmployeeDevelopmentPlan,
     EmployeeEngagement,
-    KeyPeople,
     EmployeeKeyPeople,
-    TrainingApplication,
-    EmployeeTrainingApplication,
-    BusFactor,
     EmployeeBusFactor,
-    Grade,
-    EmployeeGrade,
-    KeySkill,
-    EmployeeKeySkill,
     Team,
     EmployeeTeam,
-    Position,
-    EmployeePosition,
-    Competency,
-    PositionCompetency,
-    TeamPosition,
     EmployeeCompetency,
-    Skill,
     EmployeeSkill,
-    SkillForCompetency,
     ManagerTeam,
-    EmployeeExpectedSkill,
-    CompetencyForExpectedSkill,
     Employee,
 )
 from api.serializers import (
     EmployeeSerializer,
     TimePeriodRequestSerializer,
-    TeamMetricsResponseSerializer,
-    SkillAssessmentRequestSerializer,
-    TeamMetricsRequestSerializer,
     SkillDomenRequestSerializer,
-    MetricResponseSerializer,
     CompetencyLevelRequestSerializer,
     EmployeeCompetencySerializer,
     TeamMetricResponseSerializer,
     TeamEmployeeDashboardSerializer,
     CompetencySerializer,
-    SkillLevelRequestSerializer
+    SkillLevelRequestSerializer,
 )
 
 
@@ -551,17 +524,18 @@ class CompetencyLevelViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
     def error_response(self, errors):
         return Response(errors, status=status.HTTP_400_BAD_REQUEST)
- 
 
 
-class TeamIndividualSkillsViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
-    """ ViewSet для получения средних значений навыков сотрудника/команды. """
+class TeamIndividualSkillsViewSet(
+    mixins.CreateModelMixin, viewsets.GenericViewSet
+):
+    """ViewSet для получения средних значений навыков сотрудника/команды."""
 
     def create(self, request, team_slug, employee_id=None):
         if request.method != 'POST':
             return Response(
                 {"error": "Method not allowed."},
-                status=status.HTTP_405_METHOD_NOT_ALLOWED
+                status=status.HTTP_405_METHOD_NOT_ALLOWED,
             )
 
         if 'employeeIds' in self.request.data:
@@ -580,7 +554,9 @@ class TeamIndividualSkillsViewSet(mixins.CreateModelMixin, viewsets.GenericViewS
             # Возвращаем данные в формате {"data": data}
             return Response({"data": data}, status=status.HTTP_200_OK)
 
-        return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            request_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+        )
 
     def get_skills(self, team, employee_id, skill_domen):
         if employee_id is not None:
@@ -588,31 +564,38 @@ class TeamIndividualSkillsViewSet(mixins.CreateModelMixin, viewsets.GenericViewS
             return EmployeeSkill.objects.filter(
                 employee__id__in=employee_id,
                 employee__teams=team,
-                skill__skill_type=skill_domen
+                skill__skill_type=skill_domen,
             )
         else:
             # Загружаем все компетенции сотрудников команды
             return EmployeeSkill.objects.filter(
-                employee__teams=team,
-                skill__skill_type=skill_domen
+                employee__teams=team, skill__skill_type=skill_domen
             )
 
     def prepare_skill_data(self, skills, skill_domen, team):
         data = []
         for skill in skills:
 
-            planned_avg = EmployeeSkill.objects.filter(skill__id=skill.skill.id
-                ).aggregate(Avg('planned_result'))['planned_result__avg'] or 0
+            planned_avg = (
+                EmployeeSkill.objects.filter(
+                    skill__id=skill.skill.id
+                ).aggregate(Avg('planned_result'))['planned_result__avg']
+                or 0
+            )
 
-            actual_avg = EmployeeSkill.objects.filter(skill__id=skill.skill.id
-                ).aggregate(Avg('actual_result'))['actual_result__avg'] or 0
+            actual_avg = (
+                EmployeeSkill.objects.filter(
+                    skill__id=skill.skill.id
+                ).aggregate(Avg('actual_result'))['actual_result__avg']
+                or 0
+            )
 
             temp = {
                 "skillDomen": skill_domen,
                 "skillId": skill.skill.id,
                 "skillName": skill.skill.skill_name,
                 "plannedResult": round(planned_avg, 2),
-                "actualResult": round(actual_avg, 2)
+                "actualResult": round(actual_avg, 2),
             }
             # Проверка, если в data уже есть элемент с таким же skillId
             if not any(d['skillId'] == temp['skillId'] for d in data):
@@ -621,16 +604,21 @@ class TeamIndividualSkillsViewSet(mixins.CreateModelMixin, viewsets.GenericViewS
 
 
 class SkillLevelViewSet(viewsets.ViewSet):
-    """ ViewSet для получения уровня навыков сотрудников. """
+    """ViewSet для получения уровня навыков сотрудников."""
 
     def create(self, request, team_slug, employee_id=None):
         if request.method != 'POST':
-            return Response({"error": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+            return Response(
+                {"error": "Method not allowed."},
+                status=status.HTTP_405_METHOD_NOT_ALLOWED,
+            )
 
         # Валидация данных запроса
         request_serializer = SkillLevelRequestSerializer(data=request.data)
         if not request_serializer.is_valid():
-            return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                request_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
 
         # Получаем данные из запроса
         skill_id = request_serializer.validated_data['skillId']
@@ -656,23 +644,31 @@ class SkillLevelViewSet(viewsets.ViewSet):
     def get_employees(self, team, employee_id):
         """Получаем сотрудников команды, фильтруя по employee_id, если передан."""
 
-        return team.employee.filter(id=employee_id) if employee_id else team.employee.all()
+        return (
+            team.employee.filter(id=employee_id)
+            if employee_id
+            else team.employee.all()
+        )
 
     def prepare_skill_data(self, employee_skills):
         """Подготавливаем данные для ответа."""
 
         data = []
         for emp_skill in employee_skills:
-            data.append({
-                "employeeId": emp_skill.employee.id,
-                "skillDomen": emp_skill.skill.skill_type.capitalize(),
-                "assessment": str(emp_skill.skill_level),
-                "color": self.get_color_based_on_assessment(emp_skill.skill_level)
-            })
+            data.append(
+                {
+                    "employeeId": emp_skill.employee.id,
+                    "skillDomen": emp_skill.skill.skill_type.capitalize(),
+                    "assessment": str(emp_skill.skill_level),
+                    "color": self.get_color_based_on_assessment(
+                        emp_skill.skill_level
+                    ),
+                }
+            )
         return data
 
     def get_color_based_on_assessment(self, skill_level):
-        """ Метод для определения цвета в зависимости от уровня навыка. """
+        """Метод для определения цвета в зависимости от уровня навыка."""
 
         level = int(skill_level)  # Преобразуем строковый уровень в число
 

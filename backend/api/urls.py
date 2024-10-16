@@ -9,7 +9,7 @@ from api.views import (
     TeamIndividualCompetenciesViewSet,
     TeamIndividualSkillsViewSet,
     CompetencyLevelViewSet,
-    SkillLevelViewSet
+    SkillLevelViewSet,
 )
 
 from core.models import AssesmentSkill
@@ -48,17 +48,17 @@ router_v1.register(
 router_v1.register(
     r'teams/(?P<team_slug>[\w-]+)/competencies_level(?:/(?P<employee_id>\d+))?',
     CompetencyLevelViewSet,
-    basename='competency_level'
+    basename='competency_level',
 )
 router_v1.register(
     r'teams/(?P<team_slug>[\w-]+)/skills/(?P<employee_id>\d+)',
     TeamIndividualSkillsViewSet,
-    basename='skills'
+    basename='skills',
 )
 router_v1.register(
     r'teams/(?P<team_slug>[\w-]+)/skills/level',
     SkillLevelViewSet,
-    basename='skill-level'
+    basename='skill-level',
 )
 
 urlpatterns = [
