@@ -1,4 +1,5 @@
-# from django.test import TestCase
+
+# from unittest import TestCase
 # from core.models import Employee, Skill, EmployeeSkill, DevelopmentPlan
 
 # class EmployeeModelTest(TestCase):
