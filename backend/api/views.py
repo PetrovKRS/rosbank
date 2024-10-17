@@ -57,10 +57,10 @@ class DateConversionMixin:
         - Tuple[date, date]: Кортеж с двумя объектами `date` — начальной и конечной датами.
         """
         start_date = datetime.strptime(
-            f"{start_period['year']}-{start_period['month']}-15", "%Y-%B-%d"
+            f"{start_period['year']}-{start_period['month']}-18", "%Y-%B-%d"
         ).date()
         end_date = datetime.strptime(
-            f"{end_period['year']}-{end_period['month']}-15", "%Y-%B-%d"
+            f"{end_period['year']}-{end_period['month']}-18", "%Y-%B-%d"
         ).date()
         return start_date, end_date
 
@@ -258,7 +258,7 @@ class TeamCountEmployeeViewSet(
             )
             return self.get_team_employee_data(team_slug, start_date, end_date)
 
-        return self.error_response(serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get_team_employee_data(
         self, team_slug: str, start_date: str, end_date: str
@@ -305,7 +305,7 @@ class TeamCountEmployeeViewSet(
                 status=status.HTTP_200_OK,
             )
 
-        return self.error_response(response_serializer.errors)
+        return Response(response_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TeamMetricViewSet(
@@ -450,7 +450,7 @@ class TeamIndividualCompetenciesViewSet(
                 {"data": response_serializer.data}, status=status.HTTP_200_OK
             )
 
-        return self.error_response(serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get_competencies(
         self, team: EmployeeTeam, employee_id: Optional[int], skill_domen: str

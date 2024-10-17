@@ -15,9 +15,6 @@ class EmployeeFilter(filters.FilterSet):
         field_name='skills__skill__skill_name',
         lookup_expr='exact'
     )
-    competency = filters.CharFilter(
-        field_name='competencies__competency__competency_name'
-    )
     name = filters.CharFilter(
         method='filter_by_name',  # Указываем метод фильтрации
     )

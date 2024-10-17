@@ -10,7 +10,7 @@ from core.models import (
     EmployeePosition,
     EmployeeDevelopmentPlan,
     EmployeeEngagement,
-    AssesmentSkill
+    EmployeeAssesmentSkill
 )
 from users.models import ManagerTeam
 

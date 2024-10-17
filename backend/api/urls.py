@@ -12,7 +12,6 @@ from api.views import (
     SkillLevelViewSet,
 )
 
-from core.models import AssesmentSkill
 
 router_v1 = routers.DefaultRouter()
 
