@@ -25,8 +25,7 @@ router_v1.register(
     CompetencyLevelViewSet,
     basename='competency_level'
 )
-router_v1.register(r'teams/(?P<team_slug>[\w-]+)/skills', TeamIndividualSkillsViewSet, basename='skills')
-router_v1.register(r'teams/(?P<team_slug>[\w-]+)/individual-skills', TeamIndividualSkillsViewSet, basename='individual-skills')
+router_v1.register(r'teams/(?P<team_slug>[\w-]+)/skills(?:/(?P<employee_id>\d+))?', TeamIndividualSkillsViewSet, basename='skills')
 router_v1.register(r'teams/(?P<team_slug>[\w-]+)/skills/level', SkillLevelViewSet, basename='skill-level')
 
 urlpatterns = [
