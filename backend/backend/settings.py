@@ -39,10 +39,10 @@ CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'http://127.0.0.1').spl
 CORS_ALLOW_ALL_ORIGINS = True
 
 # Разрешение определенного источника
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # ваш фронтенд-URL
-    "https://rosb-hakaton.ddns.net",  # основной домен
-]
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:5173",  # ваш фронтенд-URL
+#     "https://rosb-hakaton.ddns.net",  # основной домен
+# ]
 
 # Application definition
 
