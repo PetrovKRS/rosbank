@@ -12,7 +12,6 @@ from api.views import (
     SkillLevelViewSet,
 )
 
-from core.models import AssesmentSkill
 
 router_v1 = routers.DefaultRouter()
 
@@ -51,7 +50,7 @@ router_v1.register(
     basename='competency_level',
 )
 router_v1.register(
-    r'teams/(?P<team_slug>[\w-]+)/skills/(?P<employee_id>\d+)',
+    r'teams/(?P<team_slug>[\w-]+)/skills(?:/(?P<employee_id>\d+))?',
     TeamIndividualSkillsViewSet,
     basename='skills',
 )

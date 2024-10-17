@@ -10,7 +10,7 @@ from core.models import (
     EmployeePosition,
     EmployeeDevelopmentPlan,
     EmployeeEngagement,
-    AssesmentSkill
+    EmployeeAssesmentSkill
 )
 from users.models import ManagerTeam
 
@@ -61,7 +61,7 @@ class EmployeeEngagementInline(admin.TabularInline):
 
 
 class EmployeeAssesmentSkillInline(admin.TabularInline):
-    model = AssesmentSkill
+    model = EmployeeAssesmentSkill
     extra = 1
 
 
