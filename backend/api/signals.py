@@ -36,6 +36,11 @@ def update_employee_count(sender, instance, **kwargs):
         development_plan.employeedevelopmentplan_set.count()
     )
     development_plan.save()
+    with transaction.atomic():
+        key_people = instance.key_people
+        # Пересчитываем количество сотрудников, связанных с Key People
+        key_people.employee_count = key_people.employees.count()
+        key_people.save()
 
 
 # Сигнал для пересчета employee_count при добавлении или удалении заявки на обучение
@@ -48,6 +53,11 @@ def update_employee_count(sender, instance, **kwargs):
         training_application.employeetrainingapplication_set.count()
     )
     training_application.save()
+    with transaction.atomic():
+        key_people = instance.key_people
+        # Пересчитываем количество сотрудников, связанных с Key People
+        key_people.employee_count = key_people.employees.count()
+        key_people.save()
 
 
 # Сигнал для пересчета grade_count при добавлении грейда
@@ -58,6 +68,11 @@ def update_grade_count(sender, instance, **kwargs):
     # Пересчитываем количество грейдов, связанных с должностью
     position.grade_count = position.position_grades.count()
     position.save()
+    with transaction.atomic():
+        key_people = instance.key_people
+        # Пересчитываем количество сотрудников, связанных с Key People
+        key_people.employee_count = key_people.employees.count()
+        key_people.save()
 
 
 # Сигнал для пересчета employee_count при добавлении или удалении сотрудника
@@ -68,6 +83,11 @@ def update_employee_count(sender, instance, **kwargs):
     # Пересчитываем количество сотрудников, связанных с вовлеченностью
     engagement.employee_count = engagement.employee_engagements.count()
     engagement.save()
+    with transaction.atomic():
+        key_people = instance.key_people
+        # Пересчитываем количество сотрудников, связанных с Key People
+        key_people.employee_count = key_people.employees.count()
+        key_people.save()
 
 
 # Сигнал на создание или удаление навыка сотрудника
@@ -77,6 +97,11 @@ def update_employee_count(sender, instance, **kwargs):
     # Подсчет количества сотрудников с данным навыком
     skill.employee_count = EmployeeSkill.objects.filter(skill=skill).count()
     skill.save()
+    with transaction.atomic():
+        key_people = instance.key_people
+        # Пересчитываем количество сотрудников, связанных с Key People
+        key_people.employee_count = key_people.employees.count()
+        key_people.save()
 
 
 # Сигнал на создание или удаление компетенции сотрудника
@@ -88,6 +113,11 @@ def update_employee_competency_count(sender, instance, **kwargs):
         competency=competency
     ).count()
     competency.save()
+    with transaction.atomic():
+        key_people = instance.key_people
+        # Пересчитываем количество сотрудников, связанных с Key People
+        key_people.employee_count = key_people.employees.count()
+        key_people.save()
 
 
 # Сигнал для обновления employee_count при добавлении записи EmployeeBusFactor
@@ -99,27 +129,8 @@ def update_employee_count_on_save(sender, instance, created, **kwargs):
             bus_factor=bus_factor
         ).count()
         bus_factor.save()
-
-
-# Сигнал для обновления employee_count при удалении записи EmployeeBusFactor
-# @receiver(post_save, sender=EmployeeKeyPeople)
-# def update_employee_count_on_save_key_people(sender, instance, created, **kwargs):
-#     if created:
-#         key_people = instance.key_people
-#         with transaction.atomic():
-#             key_people.employee_count = EmployeeKeyPeople.objects.filter(
-#                 key_people=key_people
-#             ).count()
-#             key_people.save()
-
-
-# # Сигнал для обновления employee_count при удалении записи EmployeeKeyPeople
-# @receiver(post_delete, sender=EmployeeKeyPeople)
-# def update_employee_count_on_delete_key_people(sender, instance, **kwargs):
-#     key_people = instance.key_people
-#     with transaction.atomic():
-#         key_people.employee_count = EmployeeKeyPeople.objects.filter(
-#             key_people=key_people
-#         ).count()
-#         key_people.save()
-
+    with transaction.atomic():
+        key_people = instance.key_people
+        # Пересчитываем количество сотрудников, связанных с Key People
+        key_people.employee_count = key_people.employees.count()
+        key_people.save()
