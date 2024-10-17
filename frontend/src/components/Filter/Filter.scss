@@ -1,0 +1,19 @@
+.filter {
+  @include mp-null-list;
+  display: flex;
+  max-height: 44px;
+  margin: 12px 20px 0 20px;
+  &__item {
+    display: flex;
+  }
+  &__skill {
+    @include mp-null;
+    @include cut-word;
+    @include use-font;
+    color: $dark;
+    padding: 8px 10px;
+    border-radius: 12px;
+    width: 100%;
+    text-align: center;
+  }
+}

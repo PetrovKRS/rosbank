@@ -1,0 +1,24 @@
+.info-table {
+  width: 151px;
+  display: flex;
+  position: absolute;
+  top: -10px;
+  right: 96px;
+  z-index: 11;
+  background: $white;
+  &__container {
+    border: 1px solid $dark;
+    border-radius: 12px;
+    padding: 4px 8px;
+    width: 208px;
+  }
+  &__title {
+    @include mp-null;
+    @include use-font;
+  }
+  &__text {
+    @include mp-null;
+    @include use-font(10px, 16px, 400);
+    display: block;
+  }
+}
