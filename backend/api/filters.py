@@ -22,7 +22,7 @@ class EmployeeFilter(filters.FilterSet):
     class Meta:
         model = Employee
         fields = (
-            'position', 'grade', 'skill', 'competency', 'name'
+            'position', 'grade', 'skill', 'name'
         )
 
     def filter_by_name(self, queryset, name, value):
