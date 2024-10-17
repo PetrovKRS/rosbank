@@ -140,3 +140,14 @@ class SkillAdmin(admin.ModelAdmin):
     readonly_fields = (
         'employee_count',
     )
+
+
+class SkillForCompetency(admin.TabularInline):
+    model = SkillForCompetency
+    extra = 1
+
+@admin.register(Competency)
+class CompetencyAdmin(admin.ModelAdmin):
+    inlines = (SkillForCompetency,)
+    list_display = ('pk', 'competency_name',)
+    readonly_fields = ('employee_count',)
