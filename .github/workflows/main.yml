@@ -4,7 +4,9 @@ on:
   push:
     branches:
 #      - VGD_serv
-      - main
+#      - main
+      - apocalipsis
+
 jobs:
 ####################################   BACKEND TESTS   ####################################
   tests:
