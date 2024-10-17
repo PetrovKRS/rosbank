@@ -3,8 +3,8 @@ name: Main workflow
 on:
   push:
     branches:
-      - VGD_serv
-
+#      - VGD_serv
+      - main
 jobs:
 ####################################   BACKEND TESTS   ####################################
   tests:

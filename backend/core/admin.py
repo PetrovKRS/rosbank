@@ -15,7 +15,9 @@ from core.models import (
     Skill,
     AssesmentSkill,
     EmployeeAssesmentSkill,
+SkillForCompetency
 )
+
 
 #
 # @admin.register(Employee)
@@ -133,3 +135,8 @@ class CompetencyAdmin(admin.ModelAdmin):
 @admin.register(Skill)
 class SkillAdmin(admin.ModelAdmin):
     readonly_fields = ('employee_count',)
+
+
+@admin.register(SkillForCompetency)
+class SkillForCompetencyAdmin(admin.ModelAdmin):
+    pass
