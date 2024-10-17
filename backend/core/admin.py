@@ -1,26 +1,39 @@
 from django.contrib import admin
 
 from .models import (
-    Employee, DevelopmentPlan, EmployeeDevelopmentPlan,
-    Engagement, EmployeeEngagement, KeyPeople,
-    EmployeeKeyPeople, TrainingApplication,
-    EmployeeTrainingApplication, BusFactor, EmployeeBusFactor,
-    Grade, EmployeeGrade, KeySkill, EmployeeKeySkill,
-    Team, EmployeeTeam, Position, EmployeePosition, PositionCompetency,
-    TeamPosition, Competency, EmployeeCompetency,
-    Skill, EmployeeSkill, SkillForCompetency, ExpectedSkill,
-    EmployeeExpectedSkill, CompetencyForExpectedSkill,
-    AssesmentSkill, EmployeeAssesmentSkill,
+    Employee,
+    DevelopmentPlan,
+    EmployeeDevelopmentPlan,
+    Engagement,
+    EmployeeEngagement,
+    KeyPeople,
+    EmployeeKeyPeople,
+    TrainingApplication,
+    EmployeeTrainingApplication,
+    BusFactor,
+    EmployeeBusFactor,
+    Grade,
+    EmployeeGrade,
+    KeySkill,
+    EmployeeKeySkill,
+    Team,
+    EmployeeTeam,
+    Position,
+    EmployeePosition,
+    PositionCompetency,
+    TeamPosition,
+    Competency,
+    EmployeeCompetency,
+    Skill,
+    EmployeeSkill,
+    SkillForCompetency,
+    ExpectedSkill,
+    EmployeeExpectedSkill,
+    CompetencyForExpectedSkill,
+    AssesmentSkill,
+    EmployeeAssesmentSkill,
 )
 
-#
-# @admin.register(Employee)
-# class EmployeeAdmin(admin.ModelAdmin):
-#     pass
-#     list_display = (
-#         'pk', 'first_name', 'last_name', 'email', 'status',
-#         'registration_date', 'last_login_date',
-#     )
 
 @admin.register(AssesmentSkill)
 class AssesmentSkillAdmin(admin.ModelAdmin):
@@ -42,17 +55,6 @@ class DevelopmentPlanAdmin(admin.ModelAdmin):
     )
     
 
-# @admin.register(EmployeeDevelopmentPlan)
-# class EmployeeDevelopmentPlanAdmin(admin.ModelAdmin):
-#     list_display = (
-#         'employee', 'development_plan', 'performance_score',
-#         'add_date',
-#     )
-#     fields = (
-#         'employee', 'development_plan', 'performance_score',
-#     )
-
-
 @admin.register(Engagement)
 class EngagementAdmin(admin.ModelAdmin):
     readonly_fields = (
@@ -60,25 +62,11 @@ class EngagementAdmin(admin.ModelAdmin):
     )
 
 
-# @admin.register(EmployeeEngagement)
-# class EmployeeEngagementAdmin(admin.ModelAdmin):
-#     list_display = (
-#         'employee', 'engagement', 'performance_score', 'add_date',
-#     )
-
-
 @admin.register(KeyPeople)
 class KeyPeopleAdmin(admin.ModelAdmin):
     readonly_fields = (
         'employee_count', 
     )
-
-
-# @admin.register(EmployeeKeyPeople)
-# class EmployeeKeyPeopleAdmin(admin.ModelAdmin):
-#     list_display = (
-#         'add_date',
-#     )
 
 
 @admin.register(TrainingApplication)
@@ -125,13 +113,6 @@ class EmployeeTeamAdmin(admin.ModelAdmin):
 class PositionAdmin(admin.ModelAdmin):
     readonly_fields = (
         'grade_count',
-    )
-
-
-@admin.register(Competency)
-class CompetencyAdmin(admin.ModelAdmin):
-    readonly_fields = (
-        'employee_count',
     )
 
 
