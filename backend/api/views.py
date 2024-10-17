@@ -7,6 +7,7 @@ from typing import Optional, Tuple, List, Dict
 from django.db.models import Avg, Sum, QuerySet
 from django.db.models.functions import ExtractMonth, ExtractYear
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (
     mixins,
     status,
@@ -38,6 +39,7 @@ from api.serializers import (
     CompetencySerializer,
     SkillLevelRequestSerializer,
 )
+from .filters import EmployeeFilter
 
 
 class DateConversionMixin:
@@ -71,6 +73,8 @@ class EmployeesViewSet(
     """
 
     serializer_class = EmployeeSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = EmployeeFilter
 
     def get_queryset(self) -> QuerySet[Employee]:
         """
