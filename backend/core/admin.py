@@ -15,7 +15,7 @@ from core.models import (
     Skill,
     AssesmentSkill,
     EmployeeAssesmentSkill,
-SkillForCompetency
+    SkillForCompetency,
 )
 
 
@@ -127,16 +127,22 @@ class PositionAdmin(admin.ModelAdmin):
     readonly_fields = ('grade_count',)
 
 
-@admin.register(Competency)
-class CompetencyAdmin(admin.ModelAdmin):
-    readonly_fields = ('employee_count',)
-
-
 @admin.register(Skill)
 class SkillAdmin(admin.ModelAdmin):
     readonly_fields = ('employee_count',)
 
 
-@admin.register(SkillForCompetency)
-class SkillForCompetencyAdmin(admin.ModelAdmin):
-    pass
+# @admin.register(SkillForCompetency)
+# class SkillForCompetencyAdmin(admin.ModelAdmin):
+#     pass
+
+
+class SkillForCompetency(admin.TabularInline):
+    model = SkillForCompetency
+    extra = 1
+
+@admin.register(Competency)
+class CompetencyAdmin(admin.ModelAdmin):
+    inlines = (SkillForCompetency,)
+    list_display = ('pk', 'competency_name',)
+    readonly_fields = ('employee_count',)
