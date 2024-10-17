@@ -10,6 +10,7 @@ from core.models import (
     EmployeePosition,
     EmployeeDevelopmentPlan,
     EmployeeEngagement,
+    AssesmentSkill
 )
 from users.models import ManagerTeam
 
@@ -59,6 +60,11 @@ class EmployeeEngagementInline(admin.TabularInline):
     extra = 1
 
 
+class EmployeeAssesmentSkillInline(admin.TabularInline):
+    model = AssesmentSkill
+    extra = 1
+
+
 @admin.register(Employee)
 class UserAdmin(admin.ModelAdmin):
     inlines = [
@@ -71,6 +77,7 @@ class UserAdmin(admin.ModelAdmin):
         EmployeePositionInline,
         EmployeeDevelopmentPlanInline,
         EmployeeEngagementInline,
+        EmployeeAssesmentSkillInline
     ]
 
     list_display = ('pk', 'employee_id', 'email', 'first_name', 'last_name')
