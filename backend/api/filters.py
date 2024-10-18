@@ -1,28 +1,36 @@
 from django_filters import rest_framework as filters
-from core  .models import Employee
-from django.db.models import Q
+from core.models import Employee
+
 
 class EmployeeFilter(filters.FilterSet):
     position = filters.CharFilter(
         field_name='positions__position__position_name',
-        lookup_expr='exact'
+        lookup_expr='exact',
+        label='Должность сотрудника',
     )
     grade = filters.CharFilter(
         field_name='grades__grade__grade_name',
-        lookup_expr='exact'
+        lookup_expr='exact',
+        label='Класс сотрудника',
     )
     skill = filters.CharFilter(
         field_name='skills__skill__skill_name',
-        lookup_expr='exact'
+        lookup_expr='exact',
+        label='Навык сотрудника',
     )
-    name = filters.CharFilter(
+    competency = filters.CharFilter(
+        field_name='competencies__competency__competency_name',
+        lookup_expr='exact',
+        label='Компетенция сотрудника',
+    )
+    worker = filters.CharFilter(
         method='filter_by_name',  # Указываем метод фильтрации
     )
 
     class Meta:
         model = Employee
         fields = (
-            'position', 'grade', 'skill', 'name'
+            'position', 'grade', 'skill', 'competency', 'worker'
         )
 
     def filter_by_name(self, queryset, name, value):

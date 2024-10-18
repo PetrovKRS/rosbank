@@ -3,6 +3,8 @@ name: Main workflow
 on:
   push:
     branches:
+#      - main
+#      - apocalipsis
       - VGD_serv
 #      - main
       - apocalipsis

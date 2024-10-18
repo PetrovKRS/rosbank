@@ -33,6 +33,8 @@ schema_view = get_schema_view(
     ),
     public=True,
     permission_classes=(permissions.AllowAny,),
+    url="https://rosb-hakaton.ddns.net",  # Укажите правильный URL с https
+    # schemes=['https'],  # Ограничьте схемы только https
 )
 
 

@@ -8,10 +8,20 @@ from django.db.models import Avg, Sum, QuerySet
 from django.db.models.functions import ExtractMonth, ExtractYear
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.decorators import action
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.db.models import Avg
+from django.shortcuts import get_object_or_404
+from datetime import datetime
+from calendar import month_name
 from rest_framework import (
     mixins,
+    permissions,
     status,
     viewsets,
+    exceptions,
+    generics
 )
 from rest_framework.response import Response
 
@@ -84,6 +94,7 @@ class EmployeesViewSet(
         team = get_object_or_404(Team, slug=team_slug)
         manager = get_object_or_404(ManagerTeam, id=2)
 
+        # Возвращаем сотрудников, относящихся к команде текущего менеджера
         return Employee.objects.filter(
             teams__team=team, teams__manager=manager
         )
