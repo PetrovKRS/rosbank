@@ -39,6 +39,7 @@ from core.models import (
     Employee,
 )
 from api.serializers import (
+    TeamSkillSerializer,
     EmployeeSerializer,
     TimePeriodRequestSerializer,
     SkillDomenRequestSerializer,
@@ -237,9 +238,7 @@ class MetricViewSet(
         return Response(errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class TeamCountEmployeeViewSet(
-    mixins.ListModelMixin, viewsets.GenericViewSet
-):
+class TeamCountEmployeeViewSet(viewsets.ViewSet):
     def list(self, request, *args, **kwargs):
         dashboard = []
         team_slug = kwargs.get('team_slug')
