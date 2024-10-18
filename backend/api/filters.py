@@ -19,7 +19,7 @@ class EmployeeFilter(filters.FilterSet):
         label='Навык сотрудника',
     )
     competency = filters.CharFilter(
-        field_name='competencies__competency__competency_name',
+        field_name='employee_competencies__competency__competency_name',
         lookup_expr='exact',
         label='Компетенция сотрудника',
     )
