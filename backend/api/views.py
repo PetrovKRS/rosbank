@@ -465,10 +465,8 @@ class CompetencyLevelViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
         team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
 
-        # Получаем сотрудников команды
         employees = self.get_employees(team, employee_id)
 
-        # Фильтруем компетенции сотрудников
         employee_competencies = EmployeeCompetency.objects.filter(
             employee__in=employees,
             competency__id=competency_id,
@@ -511,7 +509,6 @@ class TeamIndividualSkillsViewSet(
 
         if 'employeeIds' in self.request.data:
             employee_id = self.request.data.get('employeeIds')
-            # Получаем сотрудников по переданным ID
             employees = Employee.objects.filter(id__in=employee_id)
         request_serializer = SkillDomenRequestSerializer(data=request.data)
 
@@ -522,7 +519,6 @@ class TeamIndividualSkillsViewSet(
             skills = self.get_skills(team, employee_id, skill_domen)
             data = self.prepare_skill_data(skills, skill_domen, team)
 
-            # Возвращаем данные в формате {"data": data}
             return Response({"data": data}, status=status.HTTP_200_OK)
 
         return Response(
@@ -531,14 +527,12 @@ class TeamIndividualSkillsViewSet(
 
     def get_skills(self, team, employee_id, skill_domen):
         if employee_id is not None:
-            # Загружаем только одного сотрудника по его ID
             return EmployeeSkill.objects.filter(
                 employee__id__in=employee_id,
                 employee__teams=team,
                 skill__skill_type=skill_domen,
             )
         else:
-            # Загружаем все компетенции сотрудников команды
             return EmployeeSkill.objects.filter(
                 employee__teams=team, skill__skill_type=skill_domen
             )
@@ -568,7 +562,6 @@ class TeamIndividualSkillsViewSet(
                 "plannedResult": round(planned_avg, 2),
                 "actualResult": round(actual_avg, 2),
             }
-            # Проверка, если в data уже есть элемент с таким же skillId
             if not any(d['skillId'] == temp['skillId'] for d in data):
                 data.append(temp)
         return data
@@ -584,31 +577,26 @@ class SkillLevelViewSet(viewsets.ViewSet):
                 status=status.HTTP_405_METHOD_NOT_ALLOWED,
             )
 
-        # Валидация данных запроса
         request_serializer = SkillLevelRequestSerializer(data=request.data)
         if not request_serializer.is_valid():
             return Response(
                 request_serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Получаем данные из запроса
         skill_id = request_serializer.validated_data['skillId']
         team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
 
-        # Получаем сотрудников команды
         employees = self.get_employees(team, employee_id)
 
-        # Фильтруем компетенции сотрудников
         employee_skills = EmployeeSkill.objects.filter(
             employee__in=employees,
             skill__id=skill_id,
         )
 
-        # Если компетенций нет
         if not employee_skills.exists():
             return Response({"data": []}, status=status.HTTP_200_OK)
 
-        # Формируем данные для ответа
+
         data = self.prepare_skill_data(employee_skills)
         return Response({"data": data}, status=status.HTTP_200_OK)
 
@@ -641,7 +629,7 @@ class SkillLevelViewSet(viewsets.ViewSet):
     def get_color_based_on_assessment(self, skill_level):
         """Метод для определения цвета в зависимости от уровня навыка."""
 
-        level = int(skill_level)  # Преобразуем строковый уровень в число
+        level = int(skill_level)
 
         if level <= 33:
             return "red"

@@ -1,5 +1,6 @@
 from django_filters import rest_framework as filters
 from core.models import Employee
+from django.db.models import Q
 
 
 class EmployeeFilter(filters.FilterSet):
@@ -24,7 +25,7 @@ class EmployeeFilter(filters.FilterSet):
         label='Компетенция сотрудника',
     )
     worker = filters.CharFilter(
-        method='filter_by_name',  # Указываем метод фильтрации
+        method='filter_by_name',
     )
 
     class Meta:
@@ -34,11 +35,10 @@ class EmployeeFilter(filters.FilterSet):
         )
 
     def filter_by_name(self, queryset, name, value):
-        # Разбиваем полное имя на части
         parts = value.split()
         query = Q()
 
-        # Добавляем условия для имени и фамилии
+
         for part in parts:
             query |= Q(first_name__icontains=part) | Q(last_name__icontains=part)
 
