@@ -1,6 +1,7 @@
 import uuid
 from enum import Enum
 
+from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
@@ -138,7 +139,7 @@ class EmployeeDevelopmentPlan(models.Model):
         verbose_name='Процент развития',
     )
     add_date = models.DateField(
-        auto_now_add=True,
+        default=timezone.now,
         db_index=True,
         verbose_name='Дата добавления сотрудника в план развития',
     )
@@ -198,7 +199,7 @@ class EmployeeEngagement(models.Model):
         verbose_name='Уровень вовлеченности сотрудника',
     )
     add_date = models.DateField(
-        auto_now_add=True,
+        default=timezone.now,
         db_index=True,
         verbose_name='Дата вовлечения сотрудника',
     )
@@ -247,7 +248,7 @@ class EmployeeKeyPeople(models.Model):
         related_name='employees',
     )
     add_date = models.DateField(
-        auto_now_add=True,
+        default=timezone.now,
         db_index=True,
         verbose_name='Дата добавления ключевого сотрудника',
     )
@@ -296,7 +297,7 @@ class EmployeeTrainingApplication(models.Model):
         verbose_name='Заявка на обучение',
     )
     add_date = models.DateField(
-        auto_now_add=True,
+        default=timezone.now,
         db_index=True,
         verbose_name='Дата добавления заявки на обучение',
     )
@@ -351,7 +352,7 @@ class EmployeeBusFactor(models.Model):
         verbose_name='Bus фактор',
     )
     add_date = models.DateField(
-        auto_now_add=True,
+        default=timezone.now,
         db_index=True,
         verbose_name='Дата добавления bud-фактора сотрудника',
     )
@@ -465,7 +466,7 @@ class EmployeeKeySkill(models.Model):
         verbose_name='Уровень ключевого навыка сотрудника',
     )
     add_date = models.DateField(
-        auto_now_add=True,
+        default=timezone.now,
         db_index=True,
         verbose_name='Дата добавления ключевого навыка сотрудника',
     )
@@ -564,7 +565,7 @@ class PositionGrade(models.Model):
         verbose_name='Грейд',
     )
     ate_added = models.DateTimeField(
-        auto_now_add=True, verbose_name='Дата добавления грейда к должности'
+        default=timezone.now, verbose_name='Дата добавления грейда к должности'
     )
 
     class Meta:

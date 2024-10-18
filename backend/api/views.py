@@ -461,6 +461,9 @@ class CompetencyLevelViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
             return self.error_response(serializer.errors)
 
         competency_id = serializer.validated_data['competencyId']
+        skill_domen = serializer.validated_data['skillDomen']
+
+
         team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
 
         # Получаем сотрудников команды
@@ -470,6 +473,7 @@ class CompetencyLevelViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         employee_competencies = EmployeeCompetency.objects.filter(
             employee__in=employees,
             competency__id=competency_id,
+            competency__competency_type=skill_domen,
         )
 
         serializer = EmployeeCompetencySerializer(
