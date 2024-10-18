@@ -238,7 +238,7 @@ class EmployeeCompetencySerializer(serializers.ModelSerializer):
         """
         Получаем тип компетенции и возвращаем его с первой заглавной буквой.
         """
-        return obj.competency.competency_type.capitalize()
+        return obj.competency.competency_type
 
     def get_assessment(self, obj):
         """
