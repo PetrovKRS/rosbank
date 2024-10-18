@@ -19,7 +19,7 @@ router_v1.register(r'teams/(?P<team_slug>[\w-]+)/count_employees', TeamCountEmpl
 router_v1.register(r'teams/(?P<team_slug>[\w-]+)/employees', EmployeesViewSet, basename='employees')
 router_v1.register(r'metrics/(?P<metric_type>development_plan|involvement)/(?P<employee_id>\d+)', MetricViewSet, basename='metric')
 router_v1.register(r'teams/(?P<team_slug>[\w-]+)/(?P<metric_type>development_plan|involvement)', TeamMetricViewSet, basename='team_metric') # План развития вовлеченность команды
-router_v1.register(r'teams/(?P<team_slug>[\w-]+)/individual_competencies(?:/(?P<employee_id>\d+))?', TeamIndividualCompetenciesViewSet, basename='individual_competencies')
+router_v1.register(r'teams/(?P<team_slug>[\w-]+)/competencies(?:/(?P<employee_id>\d+))?', TeamIndividualCompetenciesViewSet, basename='competencies')
 router_v1.register(
     r'teams/(?P<team_slug>[\w-]+)/competencies_level(?:/(?P<employee_id>\d+))?',
     CompetencyLevelViewSet,

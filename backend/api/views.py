@@ -238,9 +238,15 @@ class TeamMetricViewSet(viewsets.ViewSet):
 class TeamIndividualCompetenciesViewSet(viewsets.ViewSet):
     """ ViewSet для получения значений оценки компетенции сотрудника/команды. """
 
-    def create(self, request, team_slug, employee_id=None):
+    def create(self, request, team_slug):
         if request.method != 'POST':
             return Response({"error": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        # Получаем сотрудников по переданным ID
+        if 'employeeIds' in self.request.data:
+            employee_id = self.request.data.get('employeeIds')
+            # Получаем сотрудников по переданным ID
+            employees = Employee.objects.filter(id__in=employee_id)
 
         request_serializer = SkillDomenRequestSerializer(data=request.data)
 
@@ -258,9 +264,9 @@ class TeamIndividualCompetenciesViewSet(viewsets.ViewSet):
 
     def get_competencies(self, team, employee_id, skill_domen):
         if employee_id is not None:
-            # Загружаем только одного сотрудника по его ID
+            # Загружаем только запрошенных сотрудника по его ID
             return EmployeeCompetency.objects.filter(
-                employee__id=employee_id,
+                employee__id__in=employee_id,
                 employee__teams=team,
                 competency__competency_type=skill_domen
             )
@@ -274,6 +280,12 @@ class TeamIndividualCompetenciesViewSet(viewsets.ViewSet):
     def prepare_competency_data(self, competencies, skill_domen):
         data = []
         for competency in competencies:
+            planned_avg = EmployeeCompetency.objects.filter(competency__id=competency.competency.id
+                                                       ).aggregate(Avg('planned_result'))['planned_result__avg'] or 0
+
+            actual_avg = EmployeeCompetency.objects.filter(competency__id=competency.competency.id
+                                                      ).aggregate(Avg('actual_result'))['actual_result__avg'] or 0
+
             data.append({
                 "competencyId": competency.competency.id,
                 "skillDomen": skill_domen.capitalize(),

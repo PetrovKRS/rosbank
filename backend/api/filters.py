@@ -24,15 +24,22 @@ class EmployeeFilter(filters.FilterSet):
         label='Компетенция сотрудника',
     )
     worker = filters.CharFilter(
-        field_name='last_name',
-        lookup_expr='icontains',
-        label='Фамилия сотрудника',
-        distinct=True
+        method='filter_by_name',  # Указываем метод фильтрации
     )
 
     class Meta:
         model = Employee
         fields = (
-            'position', 'grade', 'skill',
-            'competency', 'last_name',
+            'position', 'grade', 'skill', 'competency', 'worker'
         )
+
+    def filter_by_name(self, queryset, name, value):
+        # Разбиваем полное имя на части
+        parts = value.split()
+        query = Q()
+
+        # Добавляем условия для имени и фамилии
+        for part in parts:
+            query |= Q(first_name__icontains=part) | Q(last_name__icontains=part)
+
+        return queryset.filter(query)
