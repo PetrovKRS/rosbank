@@ -209,17 +209,22 @@ class SkillDomenRequestSerializer(serializers.Serializer):
 class CompetencySerializer(serializers.Serializer):
     '''Сериализатор для компетенции.'''
 
-    competencyId = serializers.IntegerField()
-    skillDomen = serializers.CharField()
-    competencyName = serializers.CharField()
-    plannedResult = serializers.FloatField()
-    actualResult = serializers.FloatField()
+    competencyId = serializers.IntegerField(source='competency.id')
+    skillDomen = serializers.CharField(source='competency.competency_type')
+    competencyName = serializers.CharField(source='competency.competency_name')
+    plannedResult = serializers.CharField(source='planned_result')
+    actualResult = serializers.SerializerMethodField()
+
+
+    def get_actualResult(self, obj):
+        return f"{obj.actual_result:.1f}"
 
 
 class CompetencyLevelRequestSerializer(serializers.Serializer):
     '''Сериализатор для запроса компетенции.'''
 
     competencyId = serializers.IntegerField()
+    skillDomen = serializers.CharField()
 
 
 class EmployeeCompetencySerializer(serializers.ModelSerializer):

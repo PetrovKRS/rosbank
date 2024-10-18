@@ -39,7 +39,7 @@ router_v1.register(
 
 
 router_v1.register(
-    r'teams/(?P<team_slug>[\w-]+)/individual_competencies(?:/(?P<employee_id>\d+))?',
+    r'teams/(?P<team_slug>[\w-]+)/competencies(?:/(?P<employee_id>\d+))?',
     TeamIndividualCompetenciesViewSet,
     basename='individual_competencies',
 )
