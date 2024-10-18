@@ -56,7 +56,7 @@ class ManagerTeam(AbstractBaseUser):
     REQUIRED_FIELDS = [
         'first_name',
         'last_name',
-    ]  # Добавляем обязательные поля
+    ] 
 
     class Meta:
         verbose_name = 'Менеджер'
@@ -72,15 +72,12 @@ class ManagerTeam(AbstractBaseUser):
         :param obj: Объект, на который проверяется разрешение (необязательный)
         :return: True, если пользователь имеет разрешение, иначе False.
         """
-        # Проверяем, является ли пользователь суперпользователем
+
         if self.is_superuser:
             return True
 
-        # Логика проверки разрешений
-        # Например, можно использовать атрибуты или группы пользователя для проверки
-        # В качестве примера можно сделать следующее:
-        # return perm in self.get_user_permissions()  # Если у вас есть метод, который возвращает разрешения
-        return False  # Измените логику по мере необходимости
+
+        return False
 
     def has_module_perms(self, app_label):
         """
@@ -88,5 +85,5 @@ class ManagerTeam(AbstractBaseUser):
         :param app_label: Имя приложения (строка)
         :return: True, если пользователь имеет доступ к модулю, иначе False.
         """
-        # Проверяем, является ли пользователь суперпользователем или администратором
+
         return self.is_superuser
