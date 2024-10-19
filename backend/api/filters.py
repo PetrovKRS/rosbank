@@ -33,12 +33,17 @@ class EmployeeFilter(filters.FilterSet):
         fields = ('position', 'grade', 'skill', 'competency', 'worker')
 
     def filter_by_name(self, queryset, name, value):
-        parts = value.split()
-        query = Q()
+        # Разделяем строку поиска на имя и фамилию
+        search_terms = value.split()
 
-        for part in parts:
-            query |= Q(first_name__icontains=part) | Q(
-                last_name__icontains=part
+        if len(search_terms) == 2:
+            first_name, last_name = search_terms
+            return queryset.filter(
+                Q(first_name__icontains=first_name) & Q(last_name__icontains=last_name)
             )
-
-        return queryset.filter(query)
+        elif len(search_terms) == 1:
+            # Ищем по одному из полей, если введено только одно слово
+            return queryset.filter(
+                Q(first_name__icontains=value) | Q(last_name__icontains=value)
+            )
+        return queryset
