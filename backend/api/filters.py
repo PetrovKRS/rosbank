@@ -28,11 +28,10 @@ class EmployeeFilter(filters.FilterSet):
         help_text='Компетенция сотрудника',
     )
     worker = filters.CharFilter(
-        field_name='employee__first_name ' + 'employee__last_name',
-        lookup_expr='icontains',
-        # method='filter_by_name',
-        label='ФИО сотрудника',
-        help_text='ФИО сотрудника'
+        field_name='first_name' + ' ' + 'last_name',
+        lookup_expr='exact',
+        label='Сотрудник',
+        help_text='Сотрудник',
     )
 
     class Meta:
