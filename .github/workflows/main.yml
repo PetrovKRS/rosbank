@@ -5,7 +5,7 @@ on:
     branches:
 #      - main
       - absolut
-      - apocalipsis
+#      - apocalipsis
 #      - VGD_serv
 #      - main
 #      - apocalipsis
