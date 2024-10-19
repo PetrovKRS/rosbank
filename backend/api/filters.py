@@ -34,11 +34,5 @@ class EmployeeFilter(filters.FilterSet):
 
     def filter_by_name(self, queryset, name, value):
         parts = value.split()
-        query = Q()
-
-        for part in parts:
-            query |= Q(first_name__icontains=part) | Q(
-                last_name__icontains=part
-            )
-
-        return queryset.filter(query)
+        first_name, last_name = parts
+        return queryset.filter(first_name__exact=first_name, last_name__exact=last_name)
