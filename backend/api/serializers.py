@@ -1,4 +1,6 @@
 # Стандартные библиотеки
+from enum import unique
+
 from django.urls import reverse
 from django.db.models import Avg
 
@@ -310,7 +312,10 @@ class CompetencySerializer(serializers.Serializer):
 
     competencyId = serializers.IntegerField(source='competency.id')
     skillDomen = serializers.SerializerMethodField()
-    competencyName = serializers.CharField(source='competency.competency_name')
+    competencyName = serializers.CharField(
+        source='competency.competency_name',
+        unique=True,
+    )
     plannedResult = serializers.CharField(source='planned_result')
     actualResult = serializers.SerializerMethodField()
 
