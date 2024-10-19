@@ -28,29 +28,21 @@ class EmployeeFilter(filters.FilterSet):
         help_text='Компетенция сотрудника',
     )
     worker = filters.CharFilter(
-        field_name='first_name' + ' ' + 'last_name',
-        lookup_expr='exact',
-        label='Сотрудник',
-        help_text='Сотрудник',
+        method='filter_by_full_name',
+        label='Полное имя сотрудника',
     )
 
     class Meta:
         model = Employee
         fields = ('position', 'grade', 'skill', 'competency', 'worker',)
 
-    def filter_by_name(self, queryset, name, value):
-        # Разделяем строку поиска на имя и фамилию
-        search_terms = value.split()
-
-        if len(search_terms) == 2:
-            # Ищем по двум полям, если введено имя и фамилия
-            first_name, last_name = search_terms
+    def filter_by_full_name(self, queryset, name, value):
+        # Разделение значения на имя и фамилию
+        name_parts = value.strip().split(' ')
+        if len(name_parts) == 2:
+            first_name, last_name = name_parts
             return queryset.filter(
-                Q(first_name__icontains=first_name) & Q(last_name__icontains=last_name)
+                first_name__icontains=first_name,
+                last_name__icontains=last_name
             )
-        elif len(search_terms) == 1:
-            # Ищем по одному из полей, если введено только одно слово
-            return queryset.filter(
-                Q(first_name__icontains=value) | Q(last_name__icontains=value)
-            )
-        return queryset
+        return queryset.none()  # Возвращаем пустой набор, если значение не подходит под формат
