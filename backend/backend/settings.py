@@ -22,7 +22,9 @@ else:
     DEBUG = False
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1').split(',')
-CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'http://127.0.0.1').split(',')
+CSRF_TRUSTED_ORIGINS = os.getenv(
+    'CSRF_TRUSTED_ORIGINS', 'http://127.0.0.1'
+).split(',')
 
 # # Разрешение всех источников (не рекомендуется для продакшн)
 CORS_ALLOW_ALL_ORIGINS = True
@@ -98,7 +100,7 @@ if DB_TYPE == 'postgres':
             'USER': os.getenv('POSTGRES_USER'),
             'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
             'HOST': os.getenv('DB_HOST'),
-            'PORT': os.getenv('DB_PORT')
+            'PORT': os.getenv('DB_PORT'),
         }
     }
 else:
@@ -154,9 +156,7 @@ REST_FRAMEWORK = {
     # 'DEFAULT_AUTHENTICATION_CLASSES': (
     #     'rest_framework.authentication.TokenAuthentication',
     # ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.AllowAny',
-    ),
+    'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),
     # 'DEFAULT_PAGINATION_CLASS': 'api.pagination.LimitPagination',
     # 'PAGE_SIZE': 2,
 }

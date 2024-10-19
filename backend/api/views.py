@@ -8,22 +8,12 @@ from django.db.models import Avg, Sum, QuerySet
 from django.db.models.functions import ExtractMonth, ExtractYear
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.decorators import action
-from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.db.models import Avg
-from django.shortcuts import get_object_or_404
-from datetime import datetime
-from calendar import month_name
 from rest_framework import (
     mixins,
-    permissions,
     status,
     viewsets,
-    exceptions,
-    generics
 )
-from rest_framework.response import Response
 
 # Модули текущего проекта
 from core.models import (
@@ -46,11 +36,10 @@ from api.serializers import (
     CompetencyLevelRequestSerializer,
     EmployeeCompetencySerializer,
     TeamMetricResponseSerializer,
-    TeamEmployeeDashboardSerializer,
     CompetencySerializer,
     SkillLevelRequestSerializer,
 )
-from .filters import EmployeeFilter
+from api.filters import EmployeeFilter
 
 
 class DateConversionMixin:
@@ -59,11 +48,9 @@ class DateConversionMixin:
     ) -> Tuple[date, date]:
         """
         Преобразует периоды (начальный и конечный) в объекты даты.
-
         Параметры:
         - start_period (dict): Словарь с ключами 'year' (строка) и 'month' (название месяца на английском).
         - end_period (dict): Словарь с ключами 'year' (строка) и 'month' (название месяца на английском).
-
         Возвращает:
         - Tuple[date, date]: Кортеж с двумя объектами `date` — начальной и конечной датами.
         """
@@ -95,7 +82,6 @@ class EmployeesViewSet(
         team = get_object_or_404(Team, slug=team_slug)
         manager = get_object_or_404(ManagerTeam, id=2)
 
-        # Возвращаем сотрудников, относящихся к команде текущего менеджера
         return Employee.objects.filter(
             teams__team=team, teams__manager=manager
         )
@@ -113,12 +99,10 @@ class MetricViewSet(
     def create(self, request, metric_type: str, employee_id: int) -> Response:
         """
         Создает метрики для сотрудника на основе временного периода.
-
         Параметры:
         - request: объект запроса.
         - metric_type: тип метрики.
         - employee_id: идентификатор сотрудника.
-
         Возвращает:
         - Response: данные метрик и статус 200 (OK).
         """
@@ -151,13 +135,11 @@ class MetricViewSet(
     ) -> Tuple[List[dict], str]:
         """
         Получает метрики сотрудника за заданный период.
-
         Параметры:
         - employee_id: идентификатор сотрудника.
         - model: модель метрики.
         - start_date: дата начала периода.
         - end_date: дата окончания периода.
-
         Возвращает:
         - dashboard: список метрик по месяцам.
         - last_performance: последняя метрика производительности.
@@ -188,10 +170,8 @@ class MetricViewSet(
     ) -> Dict[Tuple[int, int], float]:
         """
         Группирует метрики по месяцу и вычисляет среднее значение performance_score.
-
         Параметры:
         - employee_metrics: метрики сотрудника.
-
         Возвращает:
         - metrics_by_month_dict: словарь с ключом (year, month) и значением среднего performance_score.
         """
@@ -245,11 +225,8 @@ class TeamCountEmployeeViewSet(viewsets.ViewSet):
         # Получаем команду по слагу
         try:
             team = EmployeeTeam.objects.get(team__slug=team_slug)
-            employees = team.employee.all()  # Получаем всех сотрудников команды
+            employees = team.employee.all()
 
-            # Преобразуем даты начала и окончания
-
-            # Получаем количество сотрудников, Bus факторов и Key People
             number_of_employees = employees.count()
             number_of_bus_factors = EmployeeBusFactor.objects.filter(
                 employee__in=employees,
@@ -258,7 +235,6 @@ class TeamCountEmployeeViewSet(viewsets.ViewSet):
                 employee__in=employees,
             ).count()
 
-            # Добавляем результаты в dashboard
             dashboard = {
                 "numberOfEmployee": str(number_of_employees),
                 "numberOfBusFactor": str(number_of_bus_factors),
@@ -268,7 +244,9 @@ class TeamCountEmployeeViewSet(viewsets.ViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         except EmployeeTeam.DoesNotExist:
-            return Response({"error": "Team not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Team not found."}, status=status.HTTP_404_NOT_FOUND
+            )
 
 
 class TeamMetricViewSet(
@@ -283,12 +261,10 @@ class TeamMetricViewSet(
     def create(self, request, team_slug: str, metric_type: str) -> Response:
         """
         Создает метрики для команды на основе временного периода.
-
         Параметры:
         - request: объект запроса.
         - team_slug: уникальный слаг команды.
         - metric_type: тип метрики.
-
         Возвращает:
         - Response: данные метрик и статус 200 (OK) или сообщение об ошибке.
         """
@@ -384,12 +360,10 @@ class TeamIndividualCompetenciesViewSet(
     ) -> Response:
         """
         Создает запрос на получение компетенций для команды и/или сотрудника.
-
         Параметры:
         - request: объект запроса.
         - team_slug: уникальный слаг команды.
         - employee_id: (необязательный) ID сотрудника.
-
         Возвращает:
         - Response: компетенции сотрудников и статус 200 (OK) или сообщение об ошибке.
         """
@@ -443,12 +417,10 @@ class CompetencyLevelViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     ) -> Response:
         """
         Создает запрос на получение уровней компетенций для сотрудников в команде.
-
         Параметры:
         - request: объект запроса.
         - team_slug: уникальный слаг команды.
         - employee_id: (необязательный) ID сотрудника.
-
         Возвращает:
         - Response: уровни компетенций сотрудников и статус 200 (OK) или сообщение об ошибке.
         """
@@ -461,7 +433,6 @@ class CompetencyLevelViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
         competency_id = serializer.validated_data['competencyId']
         skill_domen = serializer.validated_data['skillDomen']
-
 
         team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
 
@@ -595,7 +566,6 @@ class SkillLevelViewSet(viewsets.ViewSet):
 
         if not employee_skills.exists():
             return Response({"data": []}, status=status.HTTP_200_OK)
-
 
         data = self.prepare_skill_data(employee_skills)
         return Response({"data": data}, status=status.HTTP_200_OK)

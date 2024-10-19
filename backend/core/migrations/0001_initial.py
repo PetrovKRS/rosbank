@@ -32,7 +32,9 @@ class Migration(migrations.Migration):
                 (
                     "assesmentskill_name",
                     models.CharField(
-                        max_length=255, unique=True, verbose_name="Название оценки"
+                        max_length=255,
+                        unique=True,
+                        verbose_name="Название оценки",
                     ),
                 ),
             ],
@@ -148,13 +150,16 @@ class Migration(migrations.Migration):
                 (
                     "plan_name",
                     models.CharField(
-                        max_length=255, unique=True, verbose_name="Название плана"
+                        max_length=255,
+                        unique=True,
+                        verbose_name="Название плана",
                     ),
                 ),
                 (
                     "employee_count",
                     models.IntegerField(
-                        default=0, verbose_name="Кол-во сотрудников с планом развития"
+                        default=0,
+                        verbose_name="Кол-во сотрудников с планом развития",
                     ),
                 ),
             ],
@@ -179,11 +184,20 @@ class Migration(migrations.Migration):
                 (
                     "employee_id",
                     models.CharField(
-                        default=uuid.uuid4, editable=False, max_length=100, unique=True
+                        default=uuid.uuid4,
+                        editable=False,
+                        max_length=100,
+                        unique=True,
                     ),
                 ),
-                ("first_name", models.CharField(max_length=21, verbose_name="Имя")),
-                ("last_name", models.CharField(max_length=21, verbose_name="Фамилия")),
+                (
+                    "first_name",
+                    models.CharField(max_length=21, verbose_name="Имя"),
+                ),
+                (
+                    "last_name",
+                    models.CharField(max_length=21, verbose_name="Фамилия"),
+                ),
                 (
                     "email",
                     models.EmailField(
@@ -235,7 +249,8 @@ class Migration(migrations.Migration):
                 (
                     "employee_count",
                     models.IntegerField(
-                        default=0, verbose_name="Количество вовлеченных сотрудников"
+                        default=0,
+                        verbose_name="Количество вовлеченных сотрудников",
                     ),
                 ),
             ],
@@ -260,7 +275,8 @@ class Migration(migrations.Migration):
                 (
                     "expected_skill_name",
                     models.CharField(
-                        max_length=255, verbose_name="Название ожидаемого навыка"
+                        max_length=255,
+                        verbose_name="Название ожидаемого навыка",
                     ),
                 ),
                 (
@@ -291,7 +307,9 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "grade_name",
-                    models.CharField(max_length=255, verbose_name="Название класса"),
+                    models.CharField(
+                        max_length=255, verbose_name="Название класса"
+                    ),
                 ),
                 (
                     "grade_type",
@@ -334,7 +352,8 @@ class Migration(migrations.Migration):
                 (
                     "employee_count",
                     models.IntegerField(
-                        default=0, verbose_name="Количество сотрудников Key People"
+                        default=0,
+                        verbose_name="Количество сотрудников Key People",
                     ),
                 ),
             ],
@@ -359,7 +378,8 @@ class Migration(migrations.Migration):
                 (
                     "skill_name",
                     models.CharField(
-                        max_length=255, verbose_name="Название ключевого навыка"
+                        max_length=255,
+                        verbose_name="Название ключевого навыка",
                     ),
                 ),
                 (
@@ -391,7 +411,9 @@ class Migration(migrations.Migration):
                 (
                     "position_name",
                     models.CharField(
-                        max_length=255, unique=True, verbose_name="Название должности"
+                        max_length=255,
+                        unique=True,
+                        verbose_name="Название должности",
                     ),
                 ),
                 (
@@ -423,7 +445,9 @@ class Migration(migrations.Migration):
                 (
                     "skill_name",
                     models.CharField(
-                        max_length=255, unique=True, verbose_name="Название навыка"
+                        max_length=255,
+                        unique=True,
+                        verbose_name="Название навыка",
                     ),
                 ),
                 (
@@ -463,12 +487,16 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "team_name",
-                    models.CharField(max_length=255, verbose_name="Название команды"),
+                    models.CharField(
+                        max_length=255, verbose_name="Название команды"
+                    ),
                 ),
                 (
                     "slug",
                     models.SlugField(
-                        max_length=255, unique=True, verbose_name="Слаг команды"
+                        max_length=255,
+                        unique=True,
+                        verbose_name="Слаг команды",
                     ),
                 ),
             ],
@@ -491,12 +519,15 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "training_name",
-                    models.CharField(max_length=255, verbose_name="Название обучения"),
+                    models.CharField(
+                        max_length=255, verbose_name="Название обучения"
+                    ),
                 ),
                 (
                     "employee_count",
                     models.IntegerField(
-                        default=0, verbose_name="Количество сотрудников на обучении"
+                        default=0,
+                        verbose_name="Количество сотрудников на обучении",
                     ),
                 ),
             ],
@@ -521,13 +552,15 @@ class Migration(migrations.Migration):
                 (
                     "position",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="core.position"
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="core.position",
                     ),
                 ),
                 (
                     "team",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="core.team"
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="core.team",
                     ),
                 ),
             ],
@@ -559,7 +592,8 @@ class Migration(migrations.Migration):
                 (
                     "skill",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="core.skill"
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="core.skill",
                     ),
                 ),
             ],
@@ -702,7 +736,9 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "employee",
-                    models.ManyToManyField(related_name="teams", to="core.employee"),
+                    models.ManyToManyField(
+                        related_name="teams", to="core.employee"
+                    ),
                 ),
                 (
                     "manager",
@@ -1114,16 +1150,21 @@ class Migration(migrations.Migration):
                 (
                     "competency_level",
                     models.CharField(
-                        max_length=255, verbose_name="Уровень компетенции сотрудника"
+                        max_length=255,
+                        verbose_name="Уровень компетенции сотрудника",
                     ),
                 ),
                 (
                     "planned_result",
-                    models.FloatField(default=0.0, verbose_name="Плановая оценка"),
+                    models.FloatField(
+                        default=0.0, verbose_name="Плановая оценка"
+                    ),
                 ),
                 (
                     "actual_result",
-                    models.FloatField(default=0.0, verbose_name="Фактическая оценка"),
+                    models.FloatField(
+                        default=0.0, verbose_name="Фактическая оценка"
+                    ),
                 ),
                 (
                     "competency",
@@ -1249,14 +1290,16 @@ class Migration(migrations.Migration):
             model_name="competencyforexpectedskill",
             name="competency",
             field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE, to="core.competency"
+                on_delete=django.db.models.deletion.CASCADE,
+                to="core.competency",
             ),
         ),
         migrations.AddField(
             model_name="competencyforexpectedskill",
             name="expected_skill",
             field=models.OneToOneField(
-                on_delete=django.db.models.deletion.CASCADE, to="core.expectedskill"
+                on_delete=django.db.models.deletion.CASCADE,
+                to="core.expectedskill",
             ),
         ),
         migrations.AddConstraint(
@@ -1268,7 +1311,8 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name="positioncompetency",
             constraint=models.UniqueConstraint(
-                fields=("position", "competency"), name="unique_position_competency"
+                fields=("position", "competency"),
+                name="unique_position_competency",
             ),
         ),
         migrations.AddConstraint(
@@ -1287,7 +1331,8 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name="employeeposition",
             constraint=models.UniqueConstraint(
-                fields=("employee", "position"), name="unique_employee_position"
+                fields=("employee", "position"),
+                name="unique_employee_position",
             ),
         ),
         migrations.AddConstraint(
@@ -1306,7 +1351,8 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name="employeecompetency",
             constraint=models.UniqueConstraint(
-                fields=("employee", "competency"), name="unique_employee_competency"
+                fields=("employee", "competency"),
+                name="unique_employee_competency",
             ),
         ),
         migrations.AddConstraint(

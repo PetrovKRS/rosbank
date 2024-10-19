@@ -35,8 +35,14 @@ class Migration(migrations.Migration):
                         max_length=254, unique=True, verbose_name="E-mail"
                     ),
                 ),
-                ("first_name", models.CharField(max_length=50, verbose_name="Имя")),
-                ("last_name", models.CharField(max_length=50, verbose_name="Фамилия")),
+                (
+                    "first_name",
+                    models.CharField(max_length=50, verbose_name="Имя"),
+                ),
+                (
+                    "last_name",
+                    models.CharField(max_length=50, verbose_name="Фамилия"),
+                ),
                 (
                     "password",
                     models.CharField(

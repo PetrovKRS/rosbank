@@ -10,7 +10,7 @@ from core.models import (
     EmployeePosition,
     EmployeeDevelopmentPlan,
     EmployeeEngagement,
-    EmployeeAssesmentSkill
+    EmployeeAssesmentSkill,
 )
 from users.models import ManagerTeam
 
@@ -79,7 +79,7 @@ class UserAdmin(admin.ModelAdmin):
         EmployeePositionInline,
         EmployeeDevelopmentPlanInline,
         EmployeeEngagementInline,
-        EmployeeAssesmentSkillInline
+        EmployeeAssesmentSkillInline,
     ]
 
     list_display = ('pk', 'employee_id', 'email', 'first_name', 'last_name')

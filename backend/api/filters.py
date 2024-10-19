@@ -30,16 +30,15 @@ class EmployeeFilter(filters.FilterSet):
 
     class Meta:
         model = Employee
-        fields = (
-            'position', 'grade', 'skill', 'competency', 'worker'
-        )
+        fields = ('position', 'grade', 'skill', 'competency', 'worker')
 
     def filter_by_name(self, queryset, name, value):
         parts = value.split()
         query = Q()
 
-
         for part in parts:
-            query |= Q(first_name__icontains=part) | Q(last_name__icontains=part)
+            query |= Q(first_name__icontains=part) | Q(
+                last_name__icontains=part
+            )
 
         return queryset.filter(query)

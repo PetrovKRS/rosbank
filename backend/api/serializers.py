@@ -215,7 +215,6 @@ class CompetencySerializer(serializers.Serializer):
     plannedResult = serializers.CharField(source='planned_result')
     actualResult = serializers.SerializerMethodField()
 
-
     def get_actualResult(self, obj):
         return f"{obj.actual_result:.1f}"
 
@@ -294,15 +293,6 @@ class PeriodSerializer(serializers.Serializer):
 
     month = serializers.CharField()
     year = serializers.CharField()
-
-
-class TeamEmployeeDashboardSerializer(serializers.Serializer):
-    '''Сериализатор для метрик по команде.'''
-
-    period = PeriodSerializer()
-    numberOfEmployee = serializers.CharField()
-    numberOfBusFactor = serializers.CharField()
-    numberOfKeyPeople = serializers.CharField()
 
 
 class CompetencySerializer(serializers.Serializer):

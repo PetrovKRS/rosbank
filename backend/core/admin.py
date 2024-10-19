@@ -32,7 +32,6 @@ from core.models import (
 @admin.register(AssesmentSkill)
 class AssesmentSkillAdmin(admin.ModelAdmin):
     pass
-   
 
 
 @admin.register(EmployeeAssesmentSkill)
@@ -141,8 +140,12 @@ class SkillForCompetency(admin.TabularInline):
     model = SkillForCompetency
     extra = 1
 
+
 @admin.register(Competency)
 class CompetencyAdmin(admin.ModelAdmin):
     inlines = (SkillForCompetency,)
-    list_display = ('pk', 'competency_name',)
+    list_display = (
+        'pk',
+        'competency_name',
+    )
     readonly_fields = ('employee_count',)
