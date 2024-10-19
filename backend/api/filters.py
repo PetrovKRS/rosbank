@@ -44,6 +44,7 @@ class EmployeeFilter(filters.FilterSet):
         search_terms = value.split()
 
         if len(search_terms) == 2:
+            # Ищем по двум полям, если введено имя и фамилия
             first_name, last_name = search_terms
             return queryset.filter(
                 Q(first_name__icontains=first_name) & Q(last_name__icontains=last_name)
