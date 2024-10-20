@@ -346,63 +346,67 @@ class TeamMetricViewSet(
         return metrics_by_month_dict
 
 
-class TeamIndividualCompetenciesViewSet(
-    DateConversionMixin, mixins.CreateModelMixin, viewsets.GenericViewSet
-):
-    """
-    Обрабатывает запросы для получения компетенций сотрудников по домену навыков.
-    """
+class TeamIndividualCompetenciesViewSet(viewsets.ViewSet):
+    """ ViewSet для получения значений оценки компетенции сотрудника/команды. """
 
-    serializer_class = SkillDomenRequestSerializer
-
-    def create(
-        self, request, team_slug: str, employee_id: Optional[int] = None
-    ) -> Response:
-        """
-        Создает запрос на получение компетенций для команды и/или сотрудника.
-        Параметры:
-        - request: объект запроса.
-        - team_slug: уникальный слаг команды.
-        - employee_id: (необязательный) ID сотрудника.
-        Возвращает:
-        - Response: компетенции сотрудников и статус 200 (OK) или сообщение об ошибке.
-        """
-
+    def create(self, request, team_slug, employee_id=None):
         if request.method != 'POST':
-            return self.method_not_allowed_response()
+            return Response({"error": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            skill_domen = serializer.validated_data['skillDomen']
+        # Получаем сотрудников по переданным ID
+        if 'employeeIds' in self.request.data:
+            employee_id = self.request.data.get('employeeIds')
+            # Получаем сотрудников по переданным ID
+            employees = Employee.objects.filter(id__in=employee_id)
+
+        request_serializer = SkillDomenRequestSerializer(data=request.data)
+
+        if request_serializer.is_valid():
+            skill_domen = request_serializer.validated_data['skillDomen']
             team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
 
-            competencies = self.get_competencies(
-                team, employee_id, skill_domen
-            )
+            competencies = self.get_competencies(team, employee_id, skill_domen)
+            data = self.prepare_competency_data(competencies, skill_domen)
 
-            response_serializer = CompetencySerializer(
-                competencies, many=True, context={'skill_domen': skill_domen}
-            )
-            return Response(
-                {"data": response_serializer.data}, status=status.HTTP_200_OK
-            )
+            # Возвращаем данные в формате {"data": data}
+            return Response({"data": data}, status=status.HTTP_200_OK)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def get_competencies(
-        self, team: EmployeeTeam, employee_id: Optional[int], skill_domen: str
-    ) -> QuerySet[EmployeeCompetency]:
-        """
-        Получает компетенции сотрудников по команде и домену навыков.
-        """
-        filter_kwargs = {
-            'employee__teams': team,
-            'competency__competency_type': skill_domen,
-        }
+    def get_competencies(self, team, employee_id, skill_domen):
         if employee_id is not None:
-            filter_kwargs['employee__id'] = employee_id
+            # Загружаем только запрошенных сотрудника по его ID
+            return EmployeeCompetency.objects.filter(
+                employee__id__in=employee_id,
+                employee__teams=team,
+                competency__competency_type=skill_domen
+            )
+        else:
+            # Загружаем все компетенции сотрудников команды
+            return EmployeeCompetency.objects.filter(
+                employee__teams=team,
+                competency__competency_type=skill_domen
+            )
 
-        return EmployeeCompetency.objects.filter(**filter_kwargs)
+    def prepare_competency_data(self, competencies, skill_domen):
+        data = []
+        for competency in competencies:
+            planned_avg = EmployeeCompetency.objects.filter(competency__id=competency.competency.id
+                                                       ).aggregate(Avg('planned_result'))['planned_result__avg'] or 0
+
+            actual_avg = EmployeeCompetency.objects.filter(competency__id=competency.competency.id
+                                                      ).aggregate(Avg('actual_result'))['actual_result__avg'] or 0
+
+            temp = {
+                "competencyId": competency.competency.id,
+                "skillDomen": skill_domen.capitalize(),
+                "competencyName": competency.competency.competency_name,
+                "plannedResult": round(planned_avg, 2),
+                "actualResult": round(actual_avg, 2),
+            }
+            if not any(d['competencyId'] == temp['competencyId'] for d in data):
+                data.append(temp)
+        return data
 
 
 class CompetencyLevelViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
