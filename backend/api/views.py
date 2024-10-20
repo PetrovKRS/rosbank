@@ -37,6 +37,7 @@ from api.serializers import (
     EmployeeCompetencySerializer,
     TeamMetricResponseSerializer,
     SkillLevelRequestSerializer,
+    TeamEmployeeDashboardSerializer,
 )
 from api.filters import EmployeeFilter
 
@@ -217,37 +218,82 @@ class MetricViewSet(
         return Response(errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class TeamCountEmployeeViewSet(viewsets.ViewSet):
-    '''
-    Количество сотрудников в команде.
-    '''
-    def list(self, request, *args, **kwargs) -> Response:
-        dashboard = []
-        team_slug = kwargs.get('team_slug')
-        try:
-            team = EmployeeTeam.objects.get(team__slug=team_slug)
-            employees = team.employee.all()
+class TeamCountEmployeeViewSet(
+    DateConversionMixin, mixins.CreateModelMixin, viewsets.GenericViewSet
+):
+    serializer_class = TimePeriodRequestSerializer
 
-            number_of_employees = employees.count()
+    def create(self, request, team_slug):
+        if request.method != 'POST':
+            return self.method_not_allowed_response()
+
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            if 'startPeriod' in serializer.validated_data:
+                start_date, end_date = self.convert_to_date(
+                    serializer.validated_data['startPeriod'],
+                    serializer.validated_data['endPeriod']
+                )
+                return self.get_team_employee_data(team_slug, start_date, end_date)
+            else:
+                return self.get_team_employee_data(team_slug)
+
+    def get_team_employee_data(self, team_slug, start_date=None, end_date=None):
+        team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
+        employees = team.employee.all()
+
+        number_of_employees = employees.count()
+        period = {}
+        if start_date and end_date:
             number_of_bus_factors = EmployeeBusFactor.objects.filter(
-                employee__in=employees,
+                employee__in=employees, add_date__range=[start_date, end_date]
             ).count()
             number_of_key_people = EmployeeKeyPeople.objects.filter(
-                employee__in=employees,
+                employee__in=employees, add_date__range=[start_date, end_date]
+            ).count()
+            period = {
+
+                "startDate":{
+                        "month": month_name[start_date.month],
+                        "year": str(start_date.year),
+                },
+                "endDate":{
+                    "month": month_name[end_date.month],
+                    "year": str(end_date.year),
+                }
+            }
+        else:
+            number_of_bus_factors = EmployeeBusFactor.objects.filter(
+                employee__in=employees
+            ).count()
+            number_of_key_people = EmployeeKeyPeople.objects.filter(
+                employee__in=employees
             ).count()
 
-            dashboard = {
-                "numberOfEmployee": str(number_of_employees),
-                "numberOfBusFactor": str(number_of_bus_factors),
-                "numberOfKeyPeople": str(number_of_key_people),
-            }
-            serializer = TeamSkillSerializer(dashboard)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        dashboard_data = {
+            "period": period,
+            "numberOfEmployee": str(number_of_employees),
+            "numberOfBusFactor": str(number_of_bus_factors),
+            "numberOfKeyPeople": str(number_of_key_people)
+        }
 
-        except EmployeeTeam.DoesNotExist:
-            return Response(
-                {"error": "Team not found."}, status=status.HTTP_404_NOT_FOUND
-            )
+        response_serializer = TeamEmployeeDashboardSerializer(data=dashboard_data)
+        if response_serializer.is_valid():
+            return Response(dashboard_data, status=status.HTTP_200_OK)
+
+        return self.error_response(response_serializer.errors)
+
+    def error_response(self, errors):
+        """Метод для обработки ошибок сериализатора."""
+        return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def method_not_allowed_response(self):
+        """Метод для обработки неподдерживаемых методов."""
+        return Response(
+            {"error": "Method not allowed."},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
 
 
 class TeamMetricViewSet(
@@ -262,12 +308,6 @@ class TeamMetricViewSet(
     def create(self, request, team_slug: str, metric_type: str) -> Response:
         """
         Создает метрики для команды на основе временного периода.
-        Параметры:
-        - request: объект запроса.
-        - team_slug: уникальный слаг команды.
-        - metric_type: тип метрики.
-        Возвращает:
-        - Response: данные метрик и статус 200 (OK) или сообщение об ошибке.
         """
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():

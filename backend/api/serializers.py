@@ -124,15 +124,15 @@ class MetricRequestSerializer(serializers.Serializer):
 class PeriodSerializer(serializers.Serializer):
     """ Сериализатор для периода. """
 
-    month = serializers.CharField(required=True)
-    year = serializers.CharField(required=True)
+    month = serializers.CharField(required=False)
+    year = serializers.CharField(required=False)
 
 
 class TimePeriodRequestSerializer(serializers.Serializer):
     """ Сериализатор для запроса периода. """
 
-    startPeriod = PeriodSerializer(required=True)
-    endPeriod = PeriodSerializer(required=True)
+    startPeriod = PeriodSerializer(required=False)
+    endPeriod = PeriodSerializer(required=False)
 
 
 class IndividualDevelopmentPlanResponseSerializer(serializers.Serializer):
@@ -304,3 +304,10 @@ class SkillColorSerializer(serializers.Serializer):
     def get_color(self):
         """Получаем цвет на основе проверенного уровня."""
         return self.validate_level(self.level)
+
+
+class TeamEmployeeDashboardSerializer(serializers.Serializer):
+    period = PeriodSerializer()
+    numberOfEmployee = serializers.CharField()
+    numberOfBusFactor = serializers.CharField()
+    numberOfKeyPeople = serializers.CharField()
