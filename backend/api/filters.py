@@ -33,11 +33,15 @@ class EmployeeFilter(filters.FilterSet):
 
     class Meta:
         model = Employee
-        fields = ('position', 'grade', 'skill', 'competency', 'worker')
+        fields = ('position', 'grade', 'skill', 'competency', 'worker',)
 
-    def filter_by_name(self, queryset, name, value):
-        parts = value.split()
-        first_name, last_name = parts
-        return queryset.filter(
-            first_name__exact=first_name, last_name__exact=last_name
-        )
+    def filter_by_full_name(self, queryset, name, value):
+        # Разделение значения на имя и фамилию
+        name_parts = value.strip().split(' ')
+        if len(name_parts) == 2:
+            first_name, last_name = name_parts
+            return queryset.filter(
+                first_name__icontains=first_name,
+                last_name__icontains=last_name
+            )
+        return queryset.none()  # Возвращаем пустой набор, если значение не подходит под формат
