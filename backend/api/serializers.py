@@ -1,18 +1,14 @@
-# Стандартные библиотеки
-from django.urls import reverse
+
 from django.db.models import Avg
 
-# Сторонние библиотеки
 from rest_framework import serializers
 
-# Модули текущего проекта
 from core.models import (
     EmployeeKeyPeople,
     EmployeeTrainingApplication,
     EmployeeBusFactor,
     EmployeeCompetency,
     Skill,
-    EmployeeSkill,
     SkillTypeEnum,
     Employee,
     EmployeeKeyPeople,
@@ -20,7 +16,6 @@ from core.models import (
     EmployeeBusFactor,
     EmployeeCompetency,
     Skill,
-    EmployeeSkill,
     SkillTypeEnum,
     Employee,
 )
@@ -267,3 +262,10 @@ class IndividualSkillAverageSerializer(serializers.Serializer):
 
 class SkillLevelRequestSerializer(serializers.Serializer):
     skillId = serializers.IntegerField()
+
+
+class SkillDomenRequestSerializer(serializers.Serializer):
+    skillDomen = serializers.ChoiceField(
+        choices=SkillTypeEnum.choices(),
+        help_text="Тип навыка: hard или soft"
+    )

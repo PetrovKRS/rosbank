@@ -1,9 +1,8 @@
-# Стандартные библиотеки
+
 from calendar import month_name
 from datetime import datetime, date
 from typing import Optional, Tuple, List, Dict
 
-# Сторонние библиотеки
 from django.db.models import Avg, Sum, QuerySet
 from django.db.models.functions import ExtractMonth, ExtractYear
 from django.shortcuts import get_object_or_404
@@ -15,7 +14,6 @@ from rest_framework import (
     viewsets,
 )
 
-# Модули текущего проекта
 from core.models import (
     EmployeeDevelopmentPlan,
     EmployeeEngagement,
@@ -218,10 +216,12 @@ class MetricViewSet(
 
 
 class TeamCountEmployeeViewSet(viewsets.ViewSet):
-    def list(self, request, *args, **kwargs):
+    '''
+    Количество сотрудников в команде.
+    '''
+    def list(self, request, *args, **kwargs) -> Response:
         dashboard = []
         team_slug = kwargs.get('team_slug')
-        # Получаем команду по слагу
         try:
             team = EmployeeTeam.objects.get(team__slug=team_slug)
             employees = team.employee.all()
@@ -346,13 +346,15 @@ class TeamMetricViewSet(
 
 
 class TeamIndividualCompetenciesViewSet(viewsets.ViewSet):
-    """ ViewSet для получения значений оценки компетенции сотрудника/команды. """
+    """ViewSet для получения значений оценки компетенции сотрудника/команды."""
 
     def create(self, request, team_slug, employee_id=None):
         if request.method != 'POST':
-            return Response({"error": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+            return Response(
+                {"error": "Method not allowed."},
+                status=status.HTTP_405_METHOD_NOT_ALLOWED,
+            )
 
-        # Получаем сотрудников по переданным ID
         if 'employeeIds' in self.request.data:
             employee_id = self.request.data.get('employeeIds')
 
@@ -362,37 +364,45 @@ class TeamIndividualCompetenciesViewSet(viewsets.ViewSet):
             skill_domen = request_serializer.validated_data['skillDomen']
             team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
 
-            competencies = self.get_competencies(team, employee_id, skill_domen)
+            competencies = self.get_competencies(
+                team, employee_id, skill_domen
+            )
             data = self.prepare_competency_data(competencies, skill_domen)
 
-            # Возвращаем данные в формате {"data": data}
             return Response({"data": data}, status=status.HTTP_200_OK)
 
-        return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            request_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+        )
 
     def get_competencies(self, team, employee_id, skill_domen):
         if employee_id is not None:
-            # Загружаем только запрошенных сотрудника по его ID
             return EmployeeCompetency.objects.filter(
                 employee__id__in=employee_id,
                 employee__teams=team,
-                competency__competency_type=skill_domen
+                competency__competency_type=skill_domen,
             )
         else:
-            # Загружаем все компетенции сотрудников команды
             return EmployeeCompetency.objects.filter(
-                employee__teams=team,
-                competency__competency_type=skill_domen
+                employee__teams=team, competency__competency_type=skill_domen
             )
 
     def prepare_competency_data(self, competencies, skill_domen):
         data = []
         for competency in competencies:
-            planned_avg = EmployeeCompetency.objects.filter(competency__id=competency.competency.id
-                                                       ).aggregate(Avg('planned_result'))['planned_result__avg'] or 0
+            planned_avg = (
+                EmployeeCompetency.objects.filter(
+                    competency__id=competency.competency.id
+                ).aggregate(Avg('planned_result'))['planned_result__avg']
+                or 0
+            )
 
-            actual_avg = EmployeeCompetency.objects.filter(competency__id=competency.competency.id
-                                                      ).aggregate(Avg('actual_result'))['actual_result__avg'] or 0
+            actual_avg = (
+                EmployeeCompetency.objects.filter(
+                    competency__id=competency.competency.id
+                ).aggregate(Avg('actual_result'))['actual_result__avg']
+                or 0
+            )
 
             temp = {
                 "competencyId": competency.competency.id,
@@ -401,7 +411,9 @@ class TeamIndividualCompetenciesViewSet(viewsets.ViewSet):
                 "plannedResult": round(planned_avg, 2),
                 "actualResult": round(actual_avg, 2),
             }
-            if not any(d['competencyId'] == temp['competencyId'] for d in data):
+            if not any(
+                d['competencyId'] == temp['competencyId'] for d in data
+            ):
                 data.append(temp)
         return data
 
