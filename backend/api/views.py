@@ -36,7 +36,6 @@ from api.serializers import (
     CompetencyLevelRequestSerializer,
     EmployeeCompetencySerializer,
     TeamMetricResponseSerializer,
-    CompetencySerializer,
     SkillLevelRequestSerializer,
 )
 from api.filters import EmployeeFilter
@@ -356,8 +355,6 @@ class TeamIndividualCompetenciesViewSet(viewsets.ViewSet):
         # Получаем сотрудников по переданным ID
         if 'employeeIds' in self.request.data:
             employee_id = self.request.data.get('employeeIds')
-            # Получаем сотрудников по переданным ID
-            employees = Employee.objects.filter(id__in=employee_id)
 
         request_serializer = SkillDomenRequestSerializer(data=request.data)
 
@@ -484,7 +481,6 @@ class TeamIndividualSkillsViewSet(
 
         if 'employeeIds' in self.request.data:
             employee_id = self.request.data.get('employeeIds')
-            employees = Employee.objects.filter(id__in=employee_id)
         request_serializer = SkillDomenRequestSerializer(data=request.data)
 
         if request_serializer.is_valid():
