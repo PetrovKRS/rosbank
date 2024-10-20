@@ -19,16 +19,6 @@ from core.models import (
 )
 
 
-#
-# @admin.register(Employee)
-# class EmployeeAdmin(admin.ModelAdmin):
-#     pass
-#     list_display = (
-#         'pk', 'first_name', 'last_name', 'email', 'status',
-#         'registration_date', 'last_login_date',
-#     )
-
-
 @admin.register(AssesmentSkill)
 class AssesmentSkillAdmin(admin.ModelAdmin):
     pass
@@ -49,39 +39,14 @@ class DevelopmentPlanAdmin(admin.ModelAdmin):
     readonly_fields = ('employee_count',)
 
 
-# @admin.register(EmployeeDevelopmentPlan)
-# class EmployeeDevelopmentPlanAdmin(admin.ModelAdmin):
-#     list_display = (
-#         'employee', 'development_plan', 'performance_score',
-#         'add_date',
-#     )
-#     fields = (
-#         'employee', 'development_plan', 'performance_score',
-#     )
-
-
 @admin.register(Engagement)
 class EngagementAdmin(admin.ModelAdmin):
     readonly_fields = ('employee_count',)
 
 
-# @admin.register(EmployeeEngagement)
-# class EmployeeEngagementAdmin(admin.ModelAdmin):
-#     list_display = (
-#         'employee', 'engagement', 'performance_score', 'add_date',
-#     )
-
-
 @admin.register(KeyPeople)
 class KeyPeopleAdmin(admin.ModelAdmin):
     readonly_fields = ('employee_count',)
-
-
-# @admin.register(EmployeeKeyPeople)
-# class EmployeeKeyPeopleAdmin(admin.ModelAdmin):
-#     list_display = (
-#         'add_date',
-#     )
 
 
 @admin.register(TrainingApplication)
@@ -129,11 +94,6 @@ class PositionAdmin(admin.ModelAdmin):
 @admin.register(Skill)
 class SkillAdmin(admin.ModelAdmin):
     readonly_fields = ('employee_count',)
-
-
-# @admin.register(SkillForCompetency)
-# class SkillForCompetencyAdmin(admin.ModelAdmin):
-#     pass
 
 
 class SkillForCompetency(admin.TabularInline):

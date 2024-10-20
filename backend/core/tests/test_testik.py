@@ -1,12 +1,9 @@
-from django.urls import reverse, get_resolver
+from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from core.models import (
-    Employee,
     EmployeeTeam,
-    Team,
-    ManagerTeam,
 )
 
 from core.tests.factories import (
@@ -42,10 +39,8 @@ class UrlTests(APITestCase):
         }
         response = self.client.post(url, data=data, format='json')
 
-        # Проверяем, что статус ответа 200
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # Проверяем наличие ключей в ответе
         response_data = response.json()
         self.assertIn('dashboard', response_data)
         self.assertIn('completionForToday', response_data)
@@ -61,10 +56,7 @@ class UrlTests(APITestCase):
         }
         response = self.client.post(url, data=data, format='json')
 
-        # Проверяем статус
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        # Проверяем наличие ключей
         response_data = response.json()
         self.assertIn('dashboard', response_data)
         self.assertIn('completionForToday', response_data)
@@ -105,10 +97,8 @@ class UrlTests(APITestCase):
         data = {"skillDomen": "hard"}
         response = self.client.post(url, data=data, format='json')
 
-        # Проверяем статус
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # Проверяем наличие ключей
         response_data = response.json()
         self.assertIn('data', response_data)
 
@@ -119,9 +109,7 @@ class UrlTests(APITestCase):
         data = {"skillDomen": "hard", "competencyId": 1}
         response = self.client.post(url, data=data, format='json')
 
-        # Проверяем статус
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # Проверяем наличие ключей
         response_data = response.json()
         self.assertIn('data', response_data)

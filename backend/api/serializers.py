@@ -1,18 +1,14 @@
-# Стандартные библиотеки
-from django.urls import reverse
+
 from django.db.models import Avg
 
-# Сторонние библиотеки
 from rest_framework import serializers
 
-# Модули текущего проекта
 from core.models import (
     EmployeeKeyPeople,
     EmployeeTrainingApplication,
     EmployeeBusFactor,
     EmployeeCompetency,
     Skill,
-    EmployeeSkill,
     SkillTypeEnum,
     Employee,
     EmployeeKeyPeople,
@@ -20,7 +16,6 @@ from core.models import (
     EmployeeBusFactor,
     EmployeeCompetency,
     Skill,
-    EmployeeSkill,
     SkillTypeEnum,
     Employee,
 )
@@ -32,26 +27,6 @@ class WorkersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Employee
         fields = ('id', 'employee_id', 'first_name', 'patronymic', 'position')
-
-
-class SkillSerializer(serializers.ModelSerializer):
-    """Сериализатор для навыков сотрудника."""
-
-    skill = serializers.CharField(source='skill.skill_name')
-
-    class Meta:
-        model = EmployeeSkill
-        fields = ('skill', 'skill_level')
-
-
-class CompetencySerializer(serializers.ModelSerializer):
-    """Сериализатор для компетенций сотрудника."""
-
-    competency = serializers.CharField(source='competency.competency_name')
-
-    class Meta:
-        model = EmployeeCompetency
-        fields = ('competency', 'competency_level')
 
 
 class TrainingApplicationSerializer(serializers.ModelSerializer):
@@ -81,7 +56,6 @@ class AssesmentOfPotentionSerializer(serializers.Serializer):
         average_assessment = obj.assesments_skills.aggregate(Avg('assesment'))[
             'assesment__avg'
         ]
-        # Если есть средняя оценка, возвращаем её, иначе возвращаем 0
         return average_assessment if average_assessment is not None else 0
 
 
@@ -176,13 +150,6 @@ class IndividualDevelopmentPlanResponseSerializer(serializers.Serializer):
     completionForToday = serializers.CharField()
 
 
-class PeriodSerializer(serializers.Serializer):
-    '''Сериализатор для периода.'''
-
-    month = serializers.CharField(max_length=20)
-    year = serializers.IntegerField()
-
-
 class SkillDataSerializer(serializers.Serializer):
     '''Сериализатор для данных навыка.'''
 
@@ -196,14 +163,6 @@ class TeamSkillAssessmentResponseSerializer(serializers.Serializer):
 
     period = PeriodSerializer()
     skillsData = serializers.ListField(child=SkillDataSerializer())
-
-
-class SkillDomenRequestSerializer(serializers.Serializer):
-    '''Сериализатор для запроса навыков.'''
-
-    skillDomen = serializers.ChoiceField(
-        choices=SkillTypeEnum.choices(), help_text="Тип навыка: hard или soft"
-    )
 
 
 class CompetencySerializer(serializers.Serializer):
@@ -267,13 +226,6 @@ class EmployeeCompetencySerializer(serializers.ModelSerializer):
             )
 
 
-class PeriodSerializer(serializers.Serializer):
-    '''Сериализатор для периода.'''
-
-    month = serializers.CharField()
-    year = serializers.IntegerField()
-
-
 class MetricDashboardEntrySerializer(serializers.Serializer):
     '''Сериализатор для метрик.'''
 
@@ -288,27 +240,13 @@ class TeamMetricResponseSerializer(serializers.Serializer):
     completionForToday = serializers.CharField()
 
 
-class PeriodSerializer(serializers.Serializer):
-    '''Сериализатор для периода.'''
+class TeamEmployeeDashboardSerializer(serializers.Serializer):
+    '''Сериализатор для метрик по команде.'''
 
-    month = serializers.CharField()
-    year = serializers.CharField()
-
-
-class CompetencySerializer(serializers.Serializer):
-    '''Сериализатор для компетенции.'''
-
-    competencyId = serializers.IntegerField(source='competency.id')
-    skillDomen = serializers.SerializerMethodField()
-    competencyName = serializers.CharField(source='competency.competency_name')
-    plannedResult = serializers.CharField(source='planned_result')
-    actualResult = serializers.SerializerMethodField()
-
-    def get_skillDomen(self, obj):
-        return obj.competency.competency_type.capitalize()
-
-    def get_actualResult(self, obj):
-        return f"{obj.actual_result:.1f}"
+    period = PeriodSerializer()
+    numberOfEmployee = serializers.CharField()
+    numberOfBusFactor = serializers.CharField()
+    numberOfKeyPeople = serializers.CharField()
 
 
 class SkillSerializer(serializers.ModelSerializer):
@@ -342,6 +280,5 @@ class SkillLevelRequestSerializer(serializers.Serializer):
 
 class SkillDomenRequestSerializer(serializers.Serializer):
     skillDomen = serializers.ChoiceField(
-        choices=SkillTypeEnum.choices(),
-        help_text="Тип навыка: hard или soft"
+        choices=SkillTypeEnum.choices(), help_text="Тип навыка: hard или soft"
     )
