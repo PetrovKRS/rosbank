@@ -16,7 +16,8 @@ services:
       - pg_data:/var/lib/postgresql/data
 
   backend:
-    image: petrovkrs/ros_bank_backend
+#    image: petrovkrs/ros_bank_backend
+    build: ./backend
     env_file: .env
     volumes:
       - static:/app/static/
@@ -30,12 +31,12 @@ services:
       DB_PORT: 5432
 
   frontend:
-    image: petrovkrs/ros_bank_frontend
-#    build: ./frontend
+#    image: petrovkrs/ros_bank_frontend
+    build: ./frontend
     env_file: .env
     volumes:
-#      - ./frontend/:/app/result_build/
-      - static:/app/static/
+      - ./frontend/:/app/result_build/
+#      - static:/app/static/
     depends_on:
       - backend
 

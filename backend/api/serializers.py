@@ -314,7 +314,6 @@ class CompetencySerializer(serializers.Serializer):
     skillDomen = serializers.SerializerMethodField()
     competencyName = serializers.CharField(
         source='competency.competency_name',
-        unique=True,
     )
     competencyName = serializers.SerializerMethodField()
     plannedResult = serializers.CharField(source='planned_result')
