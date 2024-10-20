@@ -6,8 +6,7 @@ on:
 #      - main
 #      - absolut
 #      - apocalipsis
-#      - VGD_serv
-#      - main
+      - VGD_serv
 #      - apocalipsis
 
 jobs:

@@ -90,6 +90,11 @@ class EmployeeAssesmentSkill(models.Model):
         validators=(MinValueValidator(0), MaxValueValidator(100)),
         verbose_name='Оценка навыка сотрудника',
     )
+    add_date = models.DateField(
+        default=timezone.now,
+        db_index=True,
+        verbose_name='Дата оценки навыка сотрудника',
+    )
 
     class Meta:
         verbose_name = 'Оценка навыка сотрудника'

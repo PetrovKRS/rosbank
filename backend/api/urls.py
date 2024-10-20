@@ -32,7 +32,8 @@ router_v1.register(
 )
 
 router_v1.register(
-    r'teams/(?P<team_slug>[\w-]+)/(?P<metric_type>development_plan|involvement)',
+    r'teams/(?P<team_slug>[\w-]+)/'
+    r'(?P<metric_type>development_plan|involvement|skill_assessment)',
     TeamMetricViewSet,
     basename='team_metric',
 )

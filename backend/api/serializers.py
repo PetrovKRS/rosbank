@@ -34,6 +34,13 @@ class TrainingApplicationSerializer(serializers.ModelSerializer):
         fields = ('id','training_name',)
 
 
+class InvolvementDataSerializer(serializers.Serializer):
+    """
+    Сериализатор для данных по вовлеченности.
+    """
+    involvement = serializers.FloatField()
+
+
 class AssesmentOfPotentionSerializer(serializers.Serializer):
     """ Сериализатор для оценки потенциала сотрудника. """
 
@@ -135,6 +142,29 @@ class TimePeriodRequestSerializer(serializers.Serializer):
     endPeriod = PeriodSerializer(required=False)
 
 
+class DevelopmentPlanDataSerializer(serializers.Serializer):
+    """
+    Сериализатор для данных по плану развития.
+    """
+    progress = serializers.FloatField()
+
+
+class DevelopmentPlanResponseSerializer(serializers.Serializer):
+    """
+    Сериализатор для ответа по метрике плана развития.
+    """
+    period = PeriodSerializer()
+    developmentPlanData = DevelopmentPlanDataSerializer(many=True)
+
+
+class InvolvementResponseSerializer(serializers.Serializer):
+    """
+    Сериализатор для ответа по метрике вовлеченности.
+    """
+    period = PeriodSerializer()
+    involvementData = InvolvementDataSerializer(many=True)
+
+
 class IndividualDevelopmentPlanResponseSerializer(serializers.Serializer):
     """ Сериализатор для ответа на запрос индивидуального плана."""
 
@@ -222,13 +252,6 @@ class MetricDashboardEntrySerializer(serializers.Serializer):
     performance = serializers.CharField()
 
 
-class TeamMetricResponseSerializer(serializers.Serializer):
-    """ Сериализатор для метрик по команде. """
-
-    dashboard = MetricDashboardEntrySerializer(many=True)
-    completionForToday = serializers.CharField()
-
-
 class SkillSerializer(serializers.Serializer):
     """
         Сериализатор для представления данных о навыках сотрудников.
@@ -270,13 +293,6 @@ class SkillLevelSerializer(serializers.Serializer):
     color = serializers.CharField()
 
 
-class SkillDomenRequestSerializer(serializers.Serializer):
-    skillDomen = serializers.ChoiceField(
-        choices=SkillTypeEnum.choices(),
-        help_text="Тип навыка: hard или soft"
-    )
-
-
 class CompetencySerializer(serializers.Serializer):
     competencyId = serializers.IntegerField()
     skillDomen = serializers.CharField()
@@ -311,3 +327,40 @@ class TeamEmployeeDashboardSerializer(serializers.Serializer):
     numberOfEmployee = serializers.CharField()
     numberOfBusFactor = serializers.CharField()
     numberOfKeyPeople = serializers.CharField()
+
+
+class TeamMetricResponseSerializer(serializers.Serializer):
+    """
+    Основной сериализатор для объединенного ответа по метрикам.
+    Объединяет сериализаторы для оценки навыков, вовлеченности и плана развития.
+    """
+
+    data = serializers.ListSerializer(
+        child=serializers.SerializerMethodField()
+    )
+
+    def get_child_serializer(self, instance):
+        metric_type = self.context.get('metric_type')
+        if metric_type == "skill_assessment":
+            return SkillAssessmentResponseSerializer(instance=instance)
+        elif metric_type == "involvement":
+            return InvolvementResponseSerializer(instance=instance)
+        elif metric_type == "development_plan":
+            return DevelopmentPlanResponseSerializer(instance=instance)
+        return None
+
+
+class PeriodSerializer(serializers.Serializer):
+    """
+    Сериализатор для периода (месяц и год).
+    """
+    month = serializers.CharField(max_length=50)
+    year = serializers.IntegerField()
+
+
+class SkillAssessmentResponseSerializer(serializers.Serializer):
+    """
+    Сериализатор для ответа по метрике оценки навыков.
+    """
+    period = PeriodSerializer()
+    skillsData = SkillDataSerializer(many=True)

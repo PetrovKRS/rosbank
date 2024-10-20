@@ -15,6 +15,8 @@ from rest_framework import (
 )
 
 from core.models import (
+    AssesmentSkill,
+    EmployeeAssesmentSkill,
     EmployeeDevelopmentPlan,
     EmployeeEngagement,
     EmployeeKeyPeople,
@@ -48,11 +50,6 @@ class DateConversionMixin:
     ) -> Tuple[date, date]:
         """
         Преобразует периоды (начальный и конечный) в объекты даты.
-        Параметры:
-        - start_period (dict): Словарь с ключами 'year' (строка) и 'month' (название месяца на английском).
-        - end_period (dict): Словарь с ключами 'year' (строка) и 'month' (название месяца на английском).
-        Возвращает:
-        - Tuple[date, date]: Кортеж с двумя объектами `date` — начальной и конечной датами.
         """
         start_date = datetime.strptime(
             f"{start_period['year']}-{start_period['month']}-18", "%Y-%B-%d"
@@ -99,13 +96,8 @@ class MetricViewSet(
     def create(self, request, metric_type: str, employee_id: int) -> Response:
         """
         Создает метрики для сотрудника на основе временного периода.
-        Параметры:
-        - request: объект запроса.
-        - metric_type: тип метрики.
-        - employee_id: идентификатор сотрудника.
-        Возвращает:
-        - Response: данные метрик и статус 200 (OK).
         """
+
         serializer = self.get_serializer(data=request.data)
 
         if not serializer.is_valid():
@@ -135,15 +127,8 @@ class MetricViewSet(
     ) -> Tuple[List[dict], str]:
         """
         Получает метрики сотрудника за заданный период.
-        Параметры:
-        - employee_id: идентификатор сотрудника.
-        - model: модель метрики.
-        - start_date: дата начала периода.
-        - end_date: дата окончания периода.
-        Возвращает:
-        - dashboard: список метрик по месяцам.
-        - last_performance: последняя метрика производительности.
         """
+
         employee_metrics = model.objects.filter(
             employee__id=employee_id, add_date__range=[start_date, end_date]
         )
@@ -210,6 +195,162 @@ class MetricViewSet(
             {"error": "Method not allowed."},
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
+
+    def error_response(self, errors: dict) -> Response:
+        """
+        Возвращает ответ с ошибками валидации.
+        """
+        return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TeamMetricViewSet(
+    DateConversionMixin, mixins.CreateModelMixin, viewsets.GenericViewSet
+):
+    """
+    Обрабатывает запросы для получения метрик по команде за заданный временной период и тип метрики.
+    """
+
+    serializer_class = TimePeriodRequestSerializer
+
+    def create(self, request, team_slug: str, metric_type: str) -> Response:
+        """
+        Создает метрики для команды на основе временного периода и типа метрики.
+        """
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            return self.error_response(serializer.errors)
+
+        start_date, end_date = self.convert_to_date(
+            serializer.validated_data['startPeriod'],
+            serializer.validated_data['endPeriod'],
+        )
+
+        # Получение команды по slug
+        team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
+        employees = team.employee.all()
+
+        # В зависимости от типа метрики вызываем нужный метод
+        if metric_type == "skill_assessment":
+            # Обработка оценки навыков
+            metrics_data = self.get_assessment_skills_by_month(employees, start_date, end_date)
+
+        elif metric_type == "involvement":
+            # Обработка метрики вовлеченности
+            metrics_data = self.get_involvement_metrics(employees, start_date, end_date)
+
+        elif metric_type == "development_plan":
+            # Обработка метрики плана развития
+            metrics_data = self.get_development_plan_metrics(employees, start_date, end_date)
+
+        else:
+            return self.error_response({"error": "Invalid metric type."})
+
+        return Response({"data": metrics_data}, status=status.HTTP_200_OK)
+
+    def get_assessment_skills_by_month(
+        self, employees, start_date: date, end_date: date
+    ) -> List[dict]:
+        """
+        Получает оценки навыков сотрудников по месяцам за указанный период.
+        """
+        employee_skills = EmployeeAssesmentSkill.objects.filter(
+            employee__in=employees, add_date__range=[start_date, end_date]
+        ).annotate(
+            year=ExtractYear('add_date'), month=ExtractMonth('add_date')
+        ).values(
+            'year', 'month', 'assesmentskill__assesmentskill_name'
+        ).annotate(
+            average_assesment=Avg('assesment')
+        ).order_by('year', 'month')
+
+        grouped_skills = {}
+        for skill in employee_skills:
+            period = (skill['year'], skill['month'])
+            if period not in grouped_skills:
+                grouped_skills[period] = []
+
+            grouped_skills[period].append({
+                "skillDomen": "Hard",  # Указывается домен навыков
+                "skillId": skill['assesmentskill__assesmentskill_name'],
+                "skillName": skill['assesmentskill__assesmentskill_name'],
+                "assesment": round(skill['average_assesment'], 2),
+            })
+
+        return [
+            {
+                "period": {"month": month_name[month], "year": year},
+                "skillsData": skill_data
+            }
+            for (year, month), skill_data in grouped_skills.items()
+        ]
+
+    def get_involvement_metrics(self, employees, start_date: date, end_date: date) -> List[dict]:
+        """
+        Получает метрики вовлеченности сотрудников по месяцам за указанный период.
+        """
+        involvement_data = EmployeeEngagement.objects.filter(
+            employee__in=employees,
+            add_date__range=[start_date, end_date]
+        ).annotate(
+            year=ExtractYear('add_date'),
+            month=ExtractMonth('add_date')
+        ).values(
+            'year', 'month'
+        ).annotate(
+            average_involvement=Avg('involvement_score')
+        ).order_by('year', 'month')
+
+        grouped_involvement = {}
+        for involvement in involvement_data:
+            period = (involvement['year'], involvement['month'])
+            if period not in grouped_involvement:
+                grouped_involvement[period] = []
+
+            grouped_involvement[period].append({
+                "involvement": round(involvement['average_involvement'], 2),
+            })
+
+        return [
+            {
+                "period": {"month": month_name[month], "year": year},
+                "involvementData": involvement_info
+            }
+            for (year, month), involvement_info in grouped_involvement.items()
+        ]
+
+    def get_development_plan_metrics(self, employees, start_date: date, end_date: date) -> List[dict]:
+        """
+        Получает метрики плана развития сотрудников по месяцам за указанный период.
+        """
+        development_plan_data = EmployeeDevelopmentPlan.objects.filter(
+            employee__in=employees,
+            add_date__range=[start_date, end_date]
+        ).annotate(
+            year=ExtractYear('add_date'),
+            month=ExtractMonth('add_date')
+        ).values(
+            'year', 'month'
+        ).annotate(
+            average_progress=Avg('performance_score')
+        ).order_by('year', 'month')
+
+        grouped_plan = {}
+        for plan in development_plan_data:
+            period = (plan['year'], plan['month'])
+            if period not in grouped_plan:
+                grouped_plan[period] = []
+
+            grouped_plan[period].append({
+                "progress": round(plan['average_progress'], 2),
+            })
+
+        return [
+            {
+                "period": {"month": month_name[month], "year": year},
+                "developmentPlanData": plan_info
+            }
+            for (year, month), plan_info in grouped_plan.items()
+        ]
 
     def error_response(self, errors: dict) -> Response:
         """
@@ -296,95 +437,7 @@ class TeamCountEmployeeViewSet(
         )
 
 
-class TeamMetricViewSet(
-    DateConversionMixin, mixins.CreateModelMixin, viewsets.GenericViewSet
-):
-    """
-    Обрабатывает запросы для получения метрик по команде за заданный временной период.
-    """
 
-    serializer_class = TimePeriodRequestSerializer
-
-    def create(self, request, team_slug: str, metric_type: str) -> Response:
-        """
-        Создает метрики для команды на основе временного периода.
-        """
-        serializer = self.get_serializer(data=request.data)
-        if not serializer.is_valid():
-            return self.error_response(serializer.errors)
-
-        start_date, end_date = self.convert_to_date(
-            serializer.validated_data['startPeriod'],
-            serializer.validated_data['endPeriod'],
-        )
-
-        team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
-        employees = team.employee.all()
-        model = self.get_metric_model(metric_type)
-
-        if model is None:
-            return self.error_response({"error": "Invalid metric type."})
-
-        metrics_by_month = self.get_metrics_by_month(
-            employees, model, start_date, end_date
-        )
-
-        dashboard_data = [
-            {
-                "period": {"year": year, "month": month_name[month]},
-                "performance": str(round(performance / len(employees), 2)),
-            }
-            for (year, month), performance in metrics_by_month.items()
-        ]
-
-        completion_for_today = (
-            dashboard_data[-1]['performance'] if dashboard_data else "0.00"
-        )
-        response_data = {
-            "dashboard": dashboard_data,
-            "completionForToday": completion_for_today,
-        }
-
-        response_serializer = TeamMetricResponseSerializer(data=response_data)
-        if response_serializer.is_valid():
-            return Response(
-                response_serializer.data, status=status.HTTP_200_OK
-            )
-
-        return self.error_response(response_serializer.errors)
-
-    def get_metric_model(self, metric_type: str):
-        """
-        Получает модель метрики на основе типа.
-        """
-        return {
-            'development_plan': EmployeeDevelopmentPlan,
-            'involvement': EmployeeEngagement,
-        }.get(metric_type)
-
-    def get_metrics_by_month(
-        self, employees, model, start_date: str, end_date: str
-    ) -> Dict[tuple, float]:
-        """
-        Получает метрики сотрудников по месяцам.
-        """
-        metrics_by_month = (
-            model.objects.filter(
-                employee__in=employees, add_date__range=[start_date, end_date]
-            )
-            .annotate(
-                year=ExtractYear('add_date'), month=ExtractMonth('add_date')
-            )
-            .values('year', 'month')
-            .annotate(total_performance=Sum('performance_score'))
-            .order_by('year', 'month')
-        )
-
-        metrics_by_month_dict = {
-            (metric['year'], metric['month']): metric['total_performance']
-            for metric in metrics_by_month
-        }
-        return metrics_by_month_dict
 
 
 class TeamIndividualCompetenciesViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
@@ -657,7 +710,6 @@ class SkillLevelViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
             data.append(
                 {
-                    "employeeId": emp_skill.employee.id,
                     "skillDomen": emp_skill.skill.skill_type.capitalize(),
                     "assessment": str(emp_skill.skill_level),
                     "color": color,
