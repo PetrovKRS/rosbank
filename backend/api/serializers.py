@@ -353,3 +353,10 @@ class IndividualSkillAverageSerializer(serializers.Serializer):
 
 class SkillLevelRequestSerializer(serializers.Serializer):
     skillId = serializers.IntegerField()
+
+
+class SkillDomenRequestSerializer(serializers.Serializer):
+    skillDomen = serializers.ChoiceField(
+        choices=SkillTypeEnum.choices(),
+        help_text="Тип навыка: hard или soft"
+    )
