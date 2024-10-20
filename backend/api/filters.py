@@ -36,7 +36,7 @@ class EmployeeFilter(filters.FilterSet):
         fields = ('position', 'grade', 'skill', 'competency', 'worker',)
 
     def filter_by_full_name(self, queryset, name, value):
-        # Разделение значения на имя и фамилию
+
         name_parts = value.strip().split(' ')
         if len(name_parts) == 2:
             first_name, last_name = name_parts
@@ -44,4 +44,4 @@ class EmployeeFilter(filters.FilterSet):
                 first_name__icontains=first_name,
                 last_name__icontains=last_name
             )
-        return queryset.none()  # Возвращаем пустой набор, если значение не подходит под формат
+        return queryset.none()
