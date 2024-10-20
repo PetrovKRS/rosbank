@@ -316,6 +316,7 @@ class CompetencySerializer(serializers.Serializer):
         source='competency.competency_name',
         unique=True,
     )
+    competencyName = serializers.SerializerMethodField()
     plannedResult = serializers.CharField(source='planned_result')
     actualResult = serializers.SerializerMethodField()
 
