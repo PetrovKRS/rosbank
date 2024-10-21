@@ -51,7 +51,9 @@ class Employee(models.Model):
             models.UniqueConstraint(
                 fields=('employee_id', 'email'),
                 name='unique_first_name_email',
-                violation_error_message='Сотрудник с таким именем и почтой уже существует.',
+                violation_error_message=(
+                    'Сотрудник с таким именем и почтой уже существует.',
+                )
             ),
         )
 
@@ -799,7 +801,10 @@ class EmployeeSkill(models.Model):
         )
 
     def __str__(self):
-        return f"{self.employee.first_name} {self.employee.last_name} - {self.skill.skill_name} ({self.skill_level})"
+        return (
+            f"{self.employee.first_name} {self.employee.last_name}"
+            f" - {self.skill.skill_name} ({self.skill_level})"
+        )
 
 
 class SkillForCompetency(models.Model):
