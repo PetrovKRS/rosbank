@@ -1,4 +1,5 @@
-
+from dateutil.relativedelta import relativedelta
+from django.db.models import Q
 from calendar import month_name
 from datetime import datetime, date
 from typing import Optional, Tuple, List, Dict
@@ -297,7 +298,7 @@ class TeamMetricViewSet(
         ).values(
             'year', 'month'
         ).annotate(
-            average_involvement=Avg('involvement_score')
+            average_involvement=Avg('performance_score')
         ).order_by('year', 'month')
 
         grouped_involvement = {}
@@ -384,42 +385,58 @@ class TeamCountEmployeeViewSet(
         team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
         employees = team.employee.all()
 
-        number_of_employees = employees.count()
-        period = {}
+        period_data = []  # Список для данных по каждому месяцу
+
         if start_date and end_date:
-            number_of_bus_factors = EmployeeBusFactor.objects.filter(
-                employee__in=employees, add_date__range=[start_date, end_date]
-            ).count()
-            number_of_key_people = EmployeeKeyPeople.objects.filter(
-                employee__in=employees, add_date__range=[start_date, end_date]
-            ).count()
-            period = {
+            current_date = start_date
 
-                "startDate":{
-                        "month": month_name[start_date.month],
-                        "year": str(start_date.year),
-                },
-                "endDate":{
-                    "month": month_name[end_date.month],
-                    "year": str(end_date.year),
-                }
-            }
-        else:
-            number_of_bus_factors = EmployeeBusFactor.objects.filter(
-                employee__in=employees
-            ).count()
-            number_of_key_people = EmployeeKeyPeople.objects.filter(
-                employee__in=employees
-            ).count()
+            while current_date <= end_date:
+                month_end_date = (current_date + relativedelta(day=31)).replace(day=1) + relativedelta(months=1,
+                                                                                                       days=-1)
+                if month_end_date > end_date:
+                    month_end_date = end_date
 
+                number_of_employees = employees.filter(
+                    Q(registration_date__lte=start_date) | Q(registration_date__range=[start_date, month_end_date])
+                ).count()
+
+                number_of_bus_factors = EmployeeBusFactor.objects.filter(
+                    employee__in=employees,
+                    add_date__lte=month_end_date
+                ).count()
+                number_of_key_people = EmployeeKeyPeople.objects.filter(
+                    employee__in=employees,
+                    add_date__lte=month_end_date
+                ).count()
+
+                period_data.append({
+                    "startDate": {
+                        "month": month_name[current_date.month],
+                        "year": str(current_date.year),
+                    },
+                    "endDate": {
+                        "month": month_name[month_end_date.month],
+                        "year": str(month_end_date.year),
+                    },
+                    "numberOfEmployee": str(number_of_employees),
+                    "numberOfBusFactor": str(number_of_bus_factors),
+                    "numberOfKeyPeople": str(number_of_key_people)
+                })
+
+                current_date = month_end_date + relativedelta(days=1)
+
+        number_of_employees = employees.count()
+        number_of_bus_factors = EmployeeBusFactor.objects.all().count()
+        number_of_key_people = EmployeeKeyPeople.objects.all().count()
+        # Формирование окончательного ответа как словарь
         dashboard_data = {
-            "period": period,
-            "numberOfEmployee": str(number_of_employees),
-            "numberOfBusFactor": str(number_of_bus_factors),
-            "numberOfKeyPeople": str(number_of_key_people)
+            "period": period_data,  # Используем ключ period
+            "numberOfEmployee": str(number_of_employees),  # Добавлено в общий ответ
+            "numberOfBusFactor": str(number_of_bus_factors),  # Добавлено в общий ответ
+            "numberOfKeyPeople": str(number_of_key_people)  # Добавлено в общий ответ
         }
 
-        response_serializer = TeamEmployeeDashboardSerializer(data=dashboard_data)
+        response_serializer = TeamEmployeeDashboardSerializer(data=dashboard_data)  # Теперь передаем словарь
         if response_serializer.is_valid():
             return Response(dashboard_data, status=status.HTTP_200_OK)
 
@@ -435,9 +452,6 @@ class TeamCountEmployeeViewSet(
             {"error": "Method not allowed."},
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
-
-
-
 
 
 class TeamIndividualCompetenciesViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):

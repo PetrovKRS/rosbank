@@ -322,13 +322,6 @@ class SkillColorSerializer(serializers.Serializer):
         return self.validate_level(self.level)
 
 
-class TeamEmployeeDashboardSerializer(serializers.Serializer):
-    period = PeriodSerializer()
-    numberOfEmployee = serializers.CharField()
-    numberOfBusFactor = serializers.CharField()
-    numberOfKeyPeople = serializers.CharField()
-
-
 class TeamMetricResponseSerializer(serializers.Serializer):
     """
     Основной сериализатор для объединенного ответа по метрикам.
@@ -364,3 +357,18 @@ class SkillAssessmentResponseSerializer(serializers.Serializer):
     """
     period = PeriodSerializer()
     skillsData = SkillDataSerializer(many=True)
+
+
+
+class PeriodDataSerializer(serializers.Serializer):
+    startDate = serializers.DictField()
+    endDate = serializers.DictField()
+    numberOfEmployee = serializers.CharField()
+    numberOfBusFactor = serializers.CharField()
+    numberOfKeyPeople = serializers.CharField()
+
+class TeamEmployeeDashboardSerializer(serializers.Serializer):
+    period = serializers.ListField(child=PeriodDataSerializer())
+    numberOfEmployee = serializers.CharField()
+    numberOfBusFactor = serializers.CharField()
+    numberOfKeyPeople = serializers.CharField()
