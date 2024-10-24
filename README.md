@@ -175,6 +175,7 @@
 ![PostgreSQL](https://img.shields.io/badge/-PostgreSQL-df?style=for-the-badge&logo=PostgreSQL&labelColor=lightblue&color=blue)
 ![GitHub](https://img.shields.io/badge/-GitHub-df?style=for-the-badge&logo=GitHub&labelColor=black&color=blue)
 ![GitHubActions](https://img.shields.io/badge/-GitHubActions-df?style=for-the-badge&logo=GitHubActions&labelColor=black&color=blue)
+![GitHubActions](https://img.shields.io/badge/-CI/CD-df?style=for-the-badge&logo=CI/CD&labelColor=black&color=blue)
 ***
 ### Команда проекта: 
 ### BACKEND:

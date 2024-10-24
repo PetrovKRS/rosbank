@@ -343,14 +343,6 @@ class TeamMetricResponseSerializer(serializers.Serializer):
         return None
 
 
-class PeriodSerializer(serializers.Serializer):
-    """
-    Сериализатор для периода (месяц и год).
-    """
-    month = serializers.CharField(max_length=50)
-    year = serializers.IntegerField()
-
-
 class SkillAssessmentResponseSerializer(serializers.Serializer):
     """
     Сериализатор для ответа по метрике оценки навыков.

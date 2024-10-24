@@ -385,7 +385,7 @@ class TeamCountEmployeeViewSet(
         team = get_object_or_404(EmployeeTeam, team__slug=team_slug)
         employees = team.employee.all()
 
-        period_data = []  # Список для данных по каждому месяцу
+        period_data = []
 
         if start_date and end_date:
             current_date = start_date
