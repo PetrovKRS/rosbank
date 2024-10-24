@@ -177,7 +177,8 @@
 ![GitHubActions](https://img.shields.io/badge/-GitHubActions-df?style=for-the-badge&logo=GitHubActions&labelColor=black&color=blue)
 ![GitHubActions](https://img.shields.io/badge/-CI/CD-df?style=for-the-badge&logo=CI/CD&labelColor=black&color=blue)
 ***
-### Команда проекта: 
+### Команда проекта:
+### 
 ### BACKEND:
 [![Telegram](https://img.shields.io/badge/-Андрей_Петров-df?style=for-the-badge&logo=Telegram&labelColor=black&color=blue)](https://github.com/PetrovKRS)
 [![Telegram](https://img.shields.io/badge/-Шукало_Родион-df?style=for-the-badge&logo=Telegram&labelColor=black&color=blue)](https://github.com/SHURSHALO)
