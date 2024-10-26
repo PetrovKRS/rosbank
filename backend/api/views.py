@@ -52,6 +52,7 @@ class DateConversionMixin:
         """
         Преобразует периоды (начальный и конечный) в объекты даты.
         """
+
         start_date = datetime.strptime(
             f"{start_period['year']}-{start_period['month']}-18", "%Y-%B-%d"
         ).date()
@@ -76,6 +77,7 @@ class EmployeesViewSet(
         """
         Получает набор сотрудников, относящихся к конкретной команде и менеджеру.
         """
+
         team_slug = self.kwargs.get('team_slug')
         team = get_object_or_404(Team, slug=team_slug)
         manager = get_object_or_404(ManagerTeam, id=2)

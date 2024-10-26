@@ -1,7 +1,7 @@
 #  Дашборд системы  Starsmap по оценке компетенций сотрудника
 ***
 ### Общее описание
-> Разрабатываем дашборд системы  Starsmap по оценке компетенций сотрудника. Данный дашборд должен отображать 
+> Дашборд системы  Starsmap по оценке компетенций сотрудника. Данный дашборд должен отображать 
   как статическое состояние навыков и компетенций команды на текущий момент, так и динамические данные за период 
   (3, 6, 12 месяцев). В дашборд должны входить метрики, которые будут отображать состояние навыков, сильные 
   навыки, пройденные оценки, состояние планов развития и запросов на обучение, состояние вовлеченности 
@@ -177,11 +177,16 @@
 ![GitHubActions](https://img.shields.io/badge/-GitHubActions-df?style=for-the-badge&logo=GitHubActions&labelColor=black&color=blue)
 ![GitHubActions](https://img.shields.io/badge/-CI/CD-df?style=for-the-badge&logo=CI/CD&labelColor=black&color=blue)
 ***
-### 
-### BACKEND:
-[![Telegram](https://img.shields.io/badge/-Андрей_Петров-df?style=for-the-badge&logo=Telegram&labelColor=black&color=blue)](https://github.com/PetrovKRS)
-[![Telegram](https://img.shields.io/badge/-Шукало_Родион-df?style=for-the-badge&logo=Telegram&labelColor=black&color=blue)](https://github.com/SHURSHALO)
-***
-### FRONTEND:
-[![Telegram](https://img.shields.io/badge/-Николай_Сидорчук-df?style=for-the-badge&logo=Telegram&labelColor=black&color=blue)](https://github.com/k0t1k777)
+### Команда проекта:
+
+#### [Николаева Ольга Михайловна](https://t.me/omnikolaeva) - Продакшн менеджер
+#### [Revekka Goldberg](https://t.me/revekka_g) - Дата аналитик
+#### [Константин Копейкин](https://t.me/k_kopeikin) - Дата аналитик
+#### [Екатерина Смирнова](https://t.me/filka1310) - Дизайнер
+#### [Дарья Гузий](https://t.me/filka1310) - Дизайнер
+#### [Артур Ахметшин](https://t.me/arturakhm19) - Системный аналитик
+#### [Татьяна Рассохина](https://t.me/RassoKim) - Бизнес аналитик
+#### [Андрей Петров](https://github.com/PetrovKRS) - Бэкенд разработчик
+#### [Шукало Родион](https://github.com/PetrovKRS) - Бэкенд разработчик
+#### [Николай Сидорчук](https://github.com/k0t1k777) - Фронтенд разработчик
 ***
